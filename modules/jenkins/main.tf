@@ -1,5 +1,5 @@
 # 기존 EBS 볼륨이 있을 경우
-data "aws_ebs_volume" "existing" {
+data "aws_ebs_volumes" "existing" {
   filter {
     name   = "tag:Name"
     values = ["${var.prefix}-jenkins-data"]
@@ -9,13 +9,15 @@ data "aws_ebs_volume" "existing" {
     name   = "availability-zone"
     values = [var.az]
   }
+}
 
-  most_recent = true
+locals {
+  existing_volume_ids = try(data.aws_ebs_volumes.existing.ids, [])
 }
 
 # 기존 EBS 볼륨이 없을 경우에만 생성
 resource "aws_ebs_volume" "data" {
-  count             = data.aws_ebs_volume.existing.id != "" ? 0 : 1
+  count             = length(local.existing_volume_ids) > 0 ? 0 : 1
   availability_zone = var.az
   size              = 20
 
@@ -24,14 +26,14 @@ resource "aws_ebs_volume" "data" {
   }
 
   lifecycle {
-    prevent_destroy = false
+    prevent_destroy = true
   }
 }
 
 # Volume ID 결정 (기존 → 신규 순)
 locals {
   jenkins_volume_id = coalesce(
-    try(data.aws_ebs_volume.existing.id, null),
+    try(local.existing_volume_ids[0], null),
     try(aws_ebs_volume.data[0].id, null)
   )
 }
