@@ -36,13 +36,22 @@ module "jenkins" {
   sg_id         = module.sg.backend_sg_id
 }
 
-module "alb" {
+module "alb_jenkins" {
   source             = "./modules/alb"
   vpc_id             = module.network.vpc_id
   alb_sg_id          = module.sg.alb_sg_id
   subnet_ids         = module.network.public_subnet_ids
   target_instance_id = module.jenkins.instance_id
-  prefix             = var.prefix
+  prefix             = "${var.prefix}-jenkins"
+}
+
+module "alb_service" {
+  source     = "./modules/alb"
+  vpc_id     = module.network.vpc_id
+  alb_sg_id  = module.sg.alb_sg_id
+  subnet_ids = module.network.public_subnet_ids
+  prefix     = "${var.prefix}-service"
+  # acm_certificate_arn = var.acm_certificate_arn
 }
 
 module "bastion" {
@@ -53,4 +62,118 @@ module "bastion" {
   sg_id         = module.sg.bastion_sg_id
   key_name      = module.keypair.key_name
   prefix        = var.prefix
+}
+
+resource "aws_ecs_cluster" "come2us" {
+  name = "${var.prefix}-cluster"
+}
+
+module "ecs_gateway" {
+  source                 = "./modules/ecs"
+  prefix                 = "${var.prefix}-gateway"
+  subnets                = module.network.private_subnet_ids
+  backend_sg_id          = module.sg.backend_sg_id
+  alb_target_group_blue  = module.alb_service.gateway_tg_blue_arn
+  alb_target_group_green = module.alb_service.gateway_tg_green_arn
+  ecr_image              = "${var.ecr_uri}-gateway"
+  image_tag              = var.image_tag
+  cluster_name           = aws_ecs_cluster.come2us.name
+  active_color           = var.active_color
+}
+
+module "ecs_eureka" {
+  source                 = "./modules/ecs"
+  prefix                 = "${var.prefix}-eureka"
+  subnets                = module.network.private_subnet_ids
+  backend_sg_id          = module.sg.backend_sg_id
+  alb_target_group_blue  = module.alb_service.eureka_tg_blue_arn
+  alb_target_group_green = module.alb_service.eureka_tg_green_arn
+  ecr_image              = "${var.ecr_uri}-eureka"
+  image_tag              = var.image_tag
+  cluster_name           = aws_ecs_cluster.come2us.name
+  active_color           = var.active_color
+}
+
+module "ecs_config_server" {
+  source        = "./modules/ecs"
+  prefix        = "${var.prefix}-config"
+  subnets       = module.network.private_subnet_ids
+  backend_sg_id = module.sg.backend_sg_id
+  ecr_image     = "${var.ecr_uri}-config"
+  image_tag     = var.image_tag
+  cluster_name  = aws_ecs_cluster.come2us.name
+  active_color  = var.active_color
+
+  alb_target_group_blue  = ""
+  alb_target_group_green = ""
+}
+
+module "ecs_product" {
+  source        = "./modules/ecs"
+  prefix        = "${var.prefix}-product"
+  subnets       = module.network.private_subnet_ids
+  backend_sg_id = module.sg.backend_sg_id
+  ecr_image     = "${var.ecr_uri}-product"
+  image_tag     = var.image_tag
+  cluster_name  = aws_ecs_cluster.come2us.name
+  active_color  = var.active_color
+
+  alb_target_group_blue  = ""
+  alb_target_group_green = ""
+}
+
+module "ecs_member" {
+  source        = "./modules/ecs"
+  prefix        = "${var.prefix}-member"
+  subnets       = module.network.private_subnet_ids
+  backend_sg_id = module.sg.backend_sg_id
+  ecr_image     = "${var.ecr_uri}-member"
+  image_tag     = var.image_tag
+  cluster_name  = aws_ecs_cluster.come2us.name
+  active_color  = var.active_color
+
+  alb_target_group_blue  = ""
+  alb_target_group_green = ""
+}
+
+module "ecs_order" {
+  source        = "./modules/ecs"
+  prefix        = "${var.prefix}-order"
+  subnets       = module.network.private_subnet_ids
+  backend_sg_id = module.sg.backend_sg_id
+  ecr_image     = "${var.ecr_uri}-order"
+  image_tag     = var.image_tag
+  cluster_name  = aws_ecs_cluster.come2us.name
+  active_color  = var.active_color
+
+  alb_target_group_blue  = ""
+  alb_target_group_green = ""
+}
+
+module "ecs_payment" {
+  source        = "./modules/ecs"
+  prefix        = "${var.prefix}-payment"
+  subnets       = module.network.private_subnet_ids
+  backend_sg_id = module.sg.backend_sg_id
+  ecr_image     = "${var.ecr_uri}-payment"
+  image_tag     = var.image_tag
+  cluster_name  = aws_ecs_cluster.come2us.name
+  active_color  = var.active_color
+
+  alb_target_group_blue  = ""
+  alb_target_group_green = ""
+}
+
+module "ecs_ai" {
+  source        = "./modules/ecs"
+  prefix        = "${var.prefix}-ai"
+  subnets       = module.network.private_subnet_ids
+  backend_sg_id = module.sg.backend_sg_id
+  ecr_image     = "${var.ecr_uri}-ai"
+  image_tag     = var.image_tag
+  cluster_name  = aws_ecs_cluster.come2us.name
+  active_color  = var.active_color
+
+  alb_target_group_blue  = ""
+  alb_target_group_green = ""
 }
