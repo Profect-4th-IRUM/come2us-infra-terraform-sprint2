@@ -90,3 +90,28 @@ variable "rds_password" {
   type      = string
   sensitive = true
 }
+
+# ECR image tag
+variable "image_tag" {
+  description = "ECR Docker image tag"
+  type        = string
+  default     = "latest"
+}
+
+# Blue/Green Deployment
+variable "active_color" {
+  description = "Current active deployment color (blue or green)"
+  type        = string
+  default     = "blue"
+}
+
+variable "ecr_uri" {
+  description = "ECR repository URI"
+  type        = string
+}
+
+# ALB
+variable "acm_certificate_arn" {
+  description = "ACM Certificate ARN for HTTPS listener"
+  type        = string
+}
