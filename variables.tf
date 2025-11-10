@@ -13,6 +13,10 @@ variable "aws_secret_key" {
   description = "AWS Secret Key"
 }
 
+variable "terraform_role_arn" {
+  description = "Terraform Role ARN"
+}
+
 # common
 variable "prefix" {
   default     = "come2us"

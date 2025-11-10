@@ -24,7 +24,7 @@ resource "aws_s3_bucket_versioning" "tfstate" {
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "tfstate" {
-  bucket = aws_s3_bucket.tfstate.bucket
+  bucket = aws_s3_bucket.tfstate.id
 
   rule {
     apply_server_side_encryption_by_default {
@@ -39,6 +39,19 @@ resource "aws_s3_bucket_public_access_block" "tfstate" {
   block_public_policy     = true
   ignore_public_acls      = true
   restrict_public_buckets = true
+}
+
+locals {
+  s3_policy_json = templatefile("${path.module}/policy/s3_tfstate_policy.json", {
+    bucket_name        = "${local.project}-${local.env}-tfstate"
+    terraform_role_arn = aws_iam_role.terraform_access_role.arn
+    terraform_user_arn = aws_iam_user.terraform_access.arn
+  })
+}
+
+resource "aws_s3_bucket_policy" "tfstate_policy" {
+  bucket = aws_s3_bucket.tfstate.id
+  policy = local.s3_policy_json
 }
 
 # DynamoDB Table
