@@ -31,6 +31,6 @@ variable "prefix" {
 }
 
 variable "db_subnet_cidrs" {
-  type = list(string)
+  type        = list(string)
   description = "Private subnet CIDRs for RDS"
 }

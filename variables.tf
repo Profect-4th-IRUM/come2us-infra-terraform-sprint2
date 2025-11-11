@@ -57,7 +57,7 @@ variable "private_subnet_cidrs" {
 }
 
 variable "db_subnet_cidrs" {
-  type = list(string)
+  type        = list(string)
   description = "Private subnet CIDRs for RDS"
 }
 
@@ -88,12 +88,12 @@ variable "rds_instance_class" {
 }
 
 variable "rds_allocated_storage" {
-  type = number
+  type    = number
   default = 20
 }
 
 variable "rds_engine_version" {
-  type = string
+  type    = string
   default = "17.4"
 }
 
@@ -107,7 +107,7 @@ variable "rds_password" {
 }
 
 variable "rds_port" {
-  type = number
+  type    = number
   default = 5432
 }
 
