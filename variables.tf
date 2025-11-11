@@ -88,7 +88,13 @@ variable "rds_instance_class" {
 }
 
 variable "rds_allocated_storage" {
+  type = number
   default = 20
+}
+
+variable "rds_engine_version" {
+  type = string
+  default = "17.4"
 }
 
 variable "rds_username" {
@@ -98,6 +104,11 @@ variable "rds_username" {
 variable "rds_password" {
   type      = string
   sensitive = true
+}
+
+variable "rds_port" {
+  type = number
+  default = 5432
 }
 
 # ECR image tag

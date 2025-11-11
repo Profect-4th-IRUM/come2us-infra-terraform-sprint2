@@ -79,6 +79,22 @@ module "bastion" {
   prefix        = var.prefix
 }
 
+# RDS
+module "rds" {
+  source        = "./modules/rds"
+  prefix        = "${var.prefix}-db"
+  subnet_ids    = module.network.db_subnet_ids
+  vpc_id        = module.network.vpc_id
+  sg_id = module.sg.rds_sg_id
+  instance_class = var.rds_instance_class
+  allocated_storage = var.rds_allocated_storage
+  engine_version = var.rds_engine_version
+  db_name       = var.rds_db_name
+  username      = var.rds_username
+  password      = var.rds_password
+  port = var.rds_port
+}
+
 resource "aws_ecs_cluster" "come2us" {
   name = "${var.prefix}-cluster"
 }
