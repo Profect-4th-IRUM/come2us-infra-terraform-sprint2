@@ -56,6 +56,11 @@ variable "private_subnet_cidrs" {
   description = "Private subnet CIDRs"
 }
 
+variable "db_subnet_cidrs" {
+  type        = list(string)
+  description = "Private subnet CIDRs for RDS"
+}
+
 variable "enable_nat" {
   type        = bool
   description = "Enable NAT Gateway in public_a"
@@ -83,7 +88,13 @@ variable "rds_instance_class" {
 }
 
 variable "rds_allocated_storage" {
+  type    = number
   default = 20
+}
+
+variable "rds_engine_version" {
+  type    = string
+  default = "17.4"
 }
 
 variable "rds_username" {
@@ -93,6 +104,11 @@ variable "rds_username" {
 variable "rds_password" {
   type      = string
   sensitive = true
+}
+
+variable "rds_port" {
+  type    = number
+  default = 5432
 }
 
 # ECR image tag

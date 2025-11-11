@@ -1,7 +1,7 @@
 terraform {
   required_providers {
     aws = {
-      source = "hashicorp/aws"
+      source  = "hashicorp/aws"
       version = "~> 6.0"
     }
   }
@@ -24,6 +24,7 @@ module "network" {
   azs                  = var.azs
   public_subnet_cidrs  = var.public_subnet_cidrs
   private_subnet_cidrs = var.private_subnet_cidrs
+  db_subnet_cidrs      = var.db_subnet_cidrs
   enable_nat           = var.enable_nat
   prefix               = var.prefix
 }
@@ -76,6 +77,22 @@ module "bastion" {
   sg_id         = module.sg.bastion_sg_id
   key_name      = module.keypair.key_name
   prefix        = var.prefix
+}
+
+# RDS
+module "rds" {
+  source            = "./modules/rds"
+  prefix            = "${var.prefix}-db"
+  subnet_ids        = module.network.db_subnet_ids
+  vpc_id            = module.network.vpc_id
+  sg_id             = module.sg.rds_sg_id
+  instance_class    = var.rds_instance_class
+  allocated_storage = var.rds_allocated_storage
+  engine_version    = var.rds_engine_version
+  db_name           = var.rds_db_name
+  username          = var.rds_username
+  password          = var.rds_password
+  port              = var.rds_port
 }
 
 resource "aws_ecs_cluster" "come2us" {

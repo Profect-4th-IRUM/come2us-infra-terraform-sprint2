@@ -92,14 +92,22 @@ resource "aws_security_group" "alb_sg" {
   }
 
   egress {
-    description = "Allow ALB to reach backend on 8080"
-    from_port   = 8080
-    to_port     = 8080
-    protocol    = "tcp"
-    cidr_blocks = ["10.0.0.0/16"]
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   tags = {
     Name = "come2us-alb-sg"
   }
+}
+
+resource "aws_security_group_rule" "alb_to_backend" {
+  type                     = "egress"
+  from_port                = 8080
+  to_port                  = 8080
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.backend_sg.id
+  security_group_id        = aws_security_group.alb_sg.id
 }
