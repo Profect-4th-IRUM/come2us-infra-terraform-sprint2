@@ -29,3 +29,8 @@ variable "prefix" {
   description = "Prefix for resource names"
   default     = "come2us"
 }
+
+variable "db_subnet_cidrs" {
+  type = list(string)
+  description = "Private subnet CIDRs for RDS"
+}

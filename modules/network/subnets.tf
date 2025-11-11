@@ -45,3 +45,25 @@ resource "aws_subnet" "private_b" {
     Tier = "private"
   }
 }
+
+resource "aws_subnet" "db_private_a" {
+  vpc_id            = aws_vpc.this.id
+  cidr_block        = var.db_subnet_cidrs[0]
+  availability_zone = var.azs[0]
+
+  tags = {
+    Name = "${var.prefix}-db-private-a"
+    Tier = "db"
+  }
+}
+
+resource "aws_subnet" "db_private_b" {
+  vpc_id            = aws_vpc.this.id
+  cidr_block        = var.db_subnet_cidrs[1]
+  availability_zone = var.azs[1]
+
+  tags = {
+    Name = "${var.prefix}-db-private-b"
+    Tier = "db"
+  }
+}

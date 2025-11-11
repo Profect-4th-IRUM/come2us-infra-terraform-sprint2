@@ -56,6 +56,11 @@ variable "private_subnet_cidrs" {
   description = "Private subnet CIDRs"
 }
 
+variable "db_subnet_cidrs" {
+  type = list(string)
+  description = "Private subnet CIDRs for RDS"
+}
+
 variable "enable_nat" {
   type        = bool
   description = "Enable NAT Gateway in public_a"

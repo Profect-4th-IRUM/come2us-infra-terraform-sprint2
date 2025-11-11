@@ -6,3 +6,4 @@ output "private_subnet_a_id" { value = aws_subnet.private_a.id }
 output "nat_gateway_id" { value = var.enable_nat ? aws_nat_gateway.this[0].id : null }
 output "public_route_table_id" { value = aws_route_table.public.id }
 output "private_route_table_id" { value = aws_route_table.private.id }
+output "db_subnet_ids" { value = [aws_subnet.db_private_a.id, aws_subnet.db_private_b.id] }

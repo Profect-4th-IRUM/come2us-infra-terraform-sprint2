@@ -24,6 +24,7 @@ module "network" {
   azs                  = var.azs
   public_subnet_cidrs  = var.public_subnet_cidrs
   private_subnet_cidrs = var.private_subnet_cidrs
+  db_subnet_cidrs      = var.db_subnet_cidrs
   enable_nat           = var.enable_nat
   prefix               = var.prefix
 }
