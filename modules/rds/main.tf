@@ -1,5 +1,5 @@
 resource "aws_db_subnet_group" "come2us_db_subnet" {
-  name = "${prefix}-subnet-group"
+  name = "${var.prefix}-subnet-group"
   subnet_ids = var.subnet_ids
 
   tags = {
@@ -21,11 +21,11 @@ resource "aws_db_instance" "come2us_rds" {
 
   skip_final_snapshot = true
   deletion_protection = false
-  multi_az = false
+  multi_az = true
   publicly_accessible = false
   storage_encrypted = false
   auto_minor_version_upgrade = true
-  backup_retention_period = 1
+  backup_retention_period = 7
 
   vpc_security_group_ids = [ var.sg_id ]
   db_subnet_group_name = aws_db_subnet_group.come2us_db_subnet.name
@@ -34,6 +34,7 @@ resource "aws_db_instance" "come2us_rds" {
     Name = "${var.prefix}-primary"
     Environment = "dev"
     ManagedBy = "Terraform"
+    Role = "primary"
   }
 }
 
@@ -51,5 +52,6 @@ resource "aws_db_instance" "come2us_rds_replica" {
     Name = "${var.prefix}-replica"
     Environment = "dev"
     ManagedBy = "Terraform"
+    Role = "read-replica"
   }
 }
