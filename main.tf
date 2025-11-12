@@ -95,6 +95,17 @@ module "rds" {
   port              = var.rds_port
 }
 
+module "elasticache" {
+  source         = "./modules/elasticache"
+  prefix         = var.prefix
+  subnet_ids     = module.network.db_subnet_ids
+  sg_id          = module.sg.redis_sg_id
+  azs            = var.azs
+  engine_version = var.elasticache_engine_version
+  node_type      = var.elasticache_node_type
+  auth_token     = var.elasticache_auth_token
+}
+
 resource "aws_ecs_cluster" "come2us" {
   name = "${var.prefix}-cluster"
 }
