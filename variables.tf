@@ -135,3 +135,20 @@ variable "acm_certificate_arn" {
   description = "ACM Certificate ARN for HTTPS listener"
   type        = string
 }
+
+# ElastiCache
+variable "elasticache_engine_version" {
+  type    = string
+  default = "7.1"
+}
+
+variable "elasticache_node_type" {
+  type    = string
+  default = "cache.t3.micro"
+}
+
+variable "elasticache_auth_token" {
+  type      = string
+  default   = null
+  sensitive = true
+}
