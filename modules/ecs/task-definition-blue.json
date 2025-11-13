@@ -3,6 +3,17 @@
     "name": "app",
     "image": "${ecr_image}:${image_tag}",
     "essential": true,
+    "environment": [
+      {
+        "name": "ACTIVE_COLOR",
+        "value": "${active_color}"
+      }
+    ],
+    "command": [
+      "/bin/sh",
+      "-c",
+      "echo \"<h1 style='color:${active_color};'>${active_color} VERSION</h1>\" > /usr/share/nginx/html/index.html && nginx -g 'daemon off;'"
+    ],
     "portMappings": [
       {
         "containerPort": ${container_port},

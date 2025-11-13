@@ -34,6 +34,10 @@ variable "active_color" {
   type        = string
 }
 
+variable "warmup_color" {
+  type = string
+}
+
 variable "container_port" {
   description = "Container port for ECS task"
   type        = number
