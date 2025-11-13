@@ -59,14 +59,34 @@ resource "aws_lb_listener" "http_test" {
 
   default_action {
     type = "forward"
+    target_group_arn = (
+      var.active_color == "blue"
+      ? aws_lb_target_group.gateway_blue_test.arn
+      : aws_lb_target_group.gateway_green_test.arn
+    )
+  }
+
+  depends_on = [
+    aws_lb_target_group.gateway_blue_test,
+    aws_lb_target_group.gateway_green_test
+  ]
+}
+
+resource "aws_lb_listener" "http_dummy" {
+  load_balancer_arn = aws_lb.service_test.arn
+  port              = 81
+  protocol          = "HTTP"
+
+  default_action {
+    type = "forward"
     forward {
       target_group {
         arn = aws_lb_target_group.gateway_blue_test.arn
-        weight = var.active_color == "blue" ? 100 : 0
+        weight = 1
       }
       target_group {
         arn = aws_lb_target_group.gateway_green_test.arn
-        weight = var.active_color == "green" ? 100 : 0
+        weight = 1
       }
     }
   }

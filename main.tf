@@ -122,6 +122,7 @@ module "ecs_test" {
   image_tag = "alpine"
   container_port = 80
   cluster_name = aws_ecs_cluster.come2us.name
+  region = var.region
   active_color = var.active_color
   warmup_color = var.warmup_color
 }

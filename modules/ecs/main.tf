@@ -28,7 +28,7 @@ locals {
     log_group      = aws_cloudwatch_log_group.ecs.name
     region         = var.region
     container_port = var.container_port
-    active_color = var.active_color
+    active_color = "blue"
   })
 
   task_def_green = templatefile("${path.module}/task-definition-green.json", {
@@ -37,7 +37,7 @@ locals {
     log_group      = aws_cloudwatch_log_group.ecs.name
     region         = var.region
     container_port = var.container_port
-    active_color = var.active_color
+    active_color = "green"
   })
 }
 
