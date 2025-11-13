@@ -14,10 +14,10 @@ resource "aws_lb" "service_test" {
 
 # Gateway
 resource "aws_lb_target_group" "gateway_blue_test" {
-  name     = "${var.prefix}-gateway-blue-tg"
-  port     = 80
-  protocol = "HTTP"
-  vpc_id   = var.vpc_id
+  name        = "${var.prefix}-gateway-blue-tg"
+  port        = 80
+  protocol    = "HTTP"
+  vpc_id      = var.vpc_id
   target_type = "ip"
 
   deregistration_delay = 10
@@ -33,10 +33,10 @@ resource "aws_lb_target_group" "gateway_blue_test" {
 }
 
 resource "aws_lb_target_group" "gateway_green_test" {
-  name     = "${var.prefix}-gateway-green-tg"
-  port     = 80
-  protocol = "HTTP"
-  vpc_id   = var.vpc_id
+  name        = "${var.prefix}-gateway-green-tg"
+  port        = 80
+  protocol    = "HTTP"
+  vpc_id      = var.vpc_id
   target_type = "ip"
 
   deregistration_delay = 10
@@ -81,11 +81,11 @@ resource "aws_lb_listener" "http_dummy" {
     type = "forward"
     forward {
       target_group {
-        arn = aws_lb_target_group.gateway_blue_test.arn
+        arn    = aws_lb_target_group.gateway_blue_test.arn
         weight = 1
       }
       target_group {
-        arn = aws_lb_target_group.gateway_green_test.arn
+        arn    = aws_lb_target_group.gateway_green_test.arn
         weight = 1
       }
     }
@@ -98,7 +98,7 @@ resource "aws_lb_listener" "http_dummy" {
 }
 
 variable "active_color" {
-    type = string
+  type = string
 }
 
 output "service_test_alb_dns" {

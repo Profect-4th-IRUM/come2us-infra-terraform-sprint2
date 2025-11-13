@@ -61,11 +61,11 @@ module "keypair" {
 # }
 
 module "alb_service" {
-  source     = "./modules/alb"
-  vpc_id     = module.network.vpc_id
-  alb_sg_id  = module.sg.alb_sg_id
-  subnet_ids = module.network.public_subnet_ids
-  prefix     = "${var.prefix}-service"
+  source       = "./modules/alb"
+  vpc_id       = module.network.vpc_id
+  alb_sg_id    = module.sg.alb_sg_id
+  subnet_ids   = module.network.public_subnet_ids
+  prefix       = "${var.prefix}-service"
   active_color = var.active_color
   # acm_certificate_arn = var.acm_certificate_arn
 }
@@ -112,19 +112,19 @@ resource "aws_ecs_cluster" "come2us" {
 }
 
 module "ecs_test" {
-  source = "./modules/ecs"
-  prefix = "${var.prefix}-test"
-  subnets = module.network.private_subnet_ids
-  backend_sg_id = module.sg.test_sg_id
+  source                 = "./modules/ecs"
+  prefix                 = "${var.prefix}-test"
+  subnets                = module.network.private_subnet_ids
+  backend_sg_id          = module.sg.test_sg_id
   alb_target_group_blue  = module.alb_service.gateway_tg_blue_arn_test
   alb_target_group_green = module.alb_service.gateway_tg_green_arn_test
-  ecr_image = "nginx"
-  image_tag = "alpine"
-  container_port = 80
-  cluster_name = aws_ecs_cluster.come2us.name
-  region = var.region
-  active_color = var.active_color
-  warmup_color = var.warmup_color
+  ecr_image              = "nginx"
+  image_tag              = "alpine"
+  container_port         = 80
+  cluster_name           = aws_ecs_cluster.come2us.name
+  region                 = var.region
+  active_color           = var.active_color
+  warmup_color           = var.warmup_color
 }
 
 # module "ecs_gateway" {

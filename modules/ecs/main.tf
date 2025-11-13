@@ -28,7 +28,7 @@ locals {
     log_group      = aws_cloudwatch_log_group.ecs.name
     region         = var.region
     container_port = var.container_port
-    active_color = "blue"
+    active_color   = "blue"
   })
 
   task_def_green = templatefile("${path.module}/task-definition-green.json", {
@@ -37,7 +37,7 @@ locals {
     log_group      = aws_cloudwatch_log_group.ecs.name
     region         = var.region
     container_port = var.container_port
-    active_color = "green"
+    active_color   = "green"
   })
 }
 
@@ -68,10 +68,10 @@ resource "aws_ecs_service" "blue" {
   name            = "${var.prefix}-blue"
   cluster         = var.cluster_name
   task_definition = aws_ecs_task_definition.blue.arn
-  desired_count   = (
+  desired_count = (
     var.active_color == "blue" || var.warmup_color == "blue"
   ) ? 2 : 0
-  launch_type     = "FARGATE"
+  launch_type = "FARGATE"
 
   network_configuration {
     subnets          = var.subnets
@@ -101,10 +101,10 @@ resource "aws_ecs_service" "green" {
   name            = "${var.prefix}-green"
   cluster         = var.cluster_name
   task_definition = aws_ecs_task_definition.green.arn
-  desired_count   = (
+  desired_count = (
     var.active_color == "green" || var.warmup_color == "green"
   ) ? 2 : 0
-  launch_type     = "FARGATE"
+  launch_type = "FARGATE"
 
   network_configuration {
     subnets          = var.subnets
@@ -123,7 +123,7 @@ resource "aws_ecs_service" "green" {
 
   deployment_minimum_healthy_percent = 100
   deployment_maximum_percent         = 200
-  health_check_grace_period_seconds = 60
+  health_check_grace_period_seconds  = 60
 
   depends_on = [aws_ecs_task_definition.green]
 }

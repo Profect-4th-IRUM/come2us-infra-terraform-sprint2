@@ -125,7 +125,7 @@ variable "active_color" {
 }
 
 variable "warmup_color" {
-  type = string
+  type    = string
   default = ""
 }
 
