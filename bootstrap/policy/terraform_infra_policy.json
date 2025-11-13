@@ -68,6 +68,33 @@
         "iam:PassRole"
       ],
       "Resource": "*"
+    },
+    {
+      "Sid": "IamAccessForTerraform",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateRole",
+        "iam:AttachRolePolicy",
+        "iam:PutRolePolicy",
+        "iam:DeleteRole",
+        "iam:DetachRolePolicy",
+        "iam:GetRole",
+        "iam:ListRolePolicies",
+        "iam:ListAttachedRolePolicies",
+        "iam:ListInstanceProfilesForRole",
+        "iam:PassRole"
+      ],
+      "Resource": "arn:aws:iam::${account_id}:role/*"
+    },
+    {
+      "Sid": "ServiceLinkedRoleAccess",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateServiceLinkedRole",
+        "iam:GetServiceLinkedRoleDeletionStatus",
+        "iam:DeleteServiceLinkedRole"
+      ],
+      "Resource": "*"
     }
   ]
 }
