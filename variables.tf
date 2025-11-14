@@ -122,7 +122,11 @@ variable "image_tag" {
 variable "active_color" {
   description = "Current active deployment color (blue or green)"
   type        = string
-  default     = "blue"
+}
+
+variable "warmup_color" {
+  type    = string
+  default = ""
 }
 
 variable "ecr_uri" {

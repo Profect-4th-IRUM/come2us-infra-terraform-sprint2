@@ -23,3 +23,8 @@ variable "acm_certificate_arn" {
   description = "ACM Certificate ARN for HTTPS listener"
   default     = null
 }
+
+variable "active_color" {
+  type    = string
+  default = ""
+}

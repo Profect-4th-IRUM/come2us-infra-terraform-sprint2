@@ -56,24 +56,38 @@ locals {
   })
 }
 
-resource "aws_ecs_task_definition" "app" {
-  family                   = "${var.prefix}-task"
+resource "aws_ecs_task_definition" "blue" {
+  family                   = "${var.prefix}-task-blue"
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
   cpu                      = "512"
   memory                   = "1024"
   execution_role_arn       = aws_iam_role.ecs_task_exec.arn
   task_role_arn            = aws_iam_role.ecs_task_exec.arn
-  container_definitions    = local.task_def
+  container_definitions    = local.task_def_blue
+}
+
+resource "aws_ecs_task_definition" "green" {
+  family                   = "${var.prefix}-task-green"
+  requires_compatibilities = ["FARGATE"]
+  network_mode             = "awsvpc"
+  cpu                      = "512"
+  memory                   = "1024"
+  execution_role_arn       = aws_iam_role.ecs_task_exec.arn
+  task_role_arn            = aws_iam_role.ecs_task_exec.arn
+  container_definitions    = local.task_def_green
 }
 
 # Blue Service
 resource "aws_ecs_service" "blue" {
   name            = "${var.prefix}-blue"
   cluster         = var.cluster_name
-  task_definition = aws_ecs_task_definition.app.arn
-  desired_count   = var.active_color == "blue" ? 2 : 0
+  task_definition = aws_ecs_task_definition.blue.arn
   launch_type     = "FARGATE"
+
+  desired_count = (
+    var.active_color == "blue" || var.warmup_color == "blue"
+  ) ? 2 : 0
 
   network_configuration {
     subnets          = var.subnets
@@ -97,20 +111,27 @@ resource "aws_ecs_service" "blue" {
     }
   }
 
-  lifecycle {
-    ignore_changes = [desired_count]
+  deployment_controller {
+    type = "ECS"
   }
 
-  depends_on = [aws_ecs_task_definition.app]
+  deployment_minimum_healthy_percent = 100
+  deployment_maximum_percent         = 200
+  health_check_grace_period_seconds  = 60
+
+  depends_on = [aws_ecs_task_definition.blue]
 }
 
 # Green Service
 resource "aws_ecs_service" "green" {
   name            = "${var.prefix}-green"
   cluster         = var.cluster_name
-  task_definition = aws_ecs_task_definition.app.arn
-  desired_count   = var.active_color == "green" ? 2 : 0
+  task_definition = aws_ecs_task_definition.green.arn
   launch_type     = "FARGATE"
+
+  desired_count = (
+    var.active_color == "green" || var.warmup_color == "green"
+  ) ? 2 : 0
 
   network_configuration {
     subnets          = var.subnets
@@ -134,9 +155,13 @@ resource "aws_ecs_service" "green" {
     }
   }
 
-  lifecycle {
-    ignore_changes = [desired_count]
+  deployment_controller {
+    type = "ECS"
   }
 
-  depends_on = [aws_ecs_task_definition.app]
+  deployment_minimum_healthy_percent = 100
+  deployment_maximum_percent         = 200
+  health_check_grace_period_seconds  = 60
+
+  depends_on = [aws_ecs_task_definition.green]
 }

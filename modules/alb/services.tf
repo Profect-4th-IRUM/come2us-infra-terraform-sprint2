@@ -14,49 +14,67 @@ resource "aws_lb" "service" {
 
 # Gateway
 resource "aws_lb_target_group" "gateway_blue" {
-  name     = "${var.prefix}-gateway-blue-tg"
-  port     = 8080
-  protocol = "HTTP"
-  vpc_id   = var.vpc_id
+  name        = "${var.prefix}-gateway-blue-tg"
+  port        = 8080
+  protocol    = "HTTP"
+  vpc_id      = var.vpc_id
+  target_type = "ip"
+
+  deregistration_delay = 10
 
   health_check {
-    path = "/actuator/health"
+    path                = "/actuator/health"
+    interval            = 10
+    timeout             = 5
+    healthy_threshold   = 2
+    unhealthy_threshold = 3
+    matcher             = "200-399"
   }
 }
 
 resource "aws_lb_target_group" "gateway_green" {
-  name     = "${var.prefix}-gateway-green-tg"
-  port     = 8080
-  protocol = "HTTP"
-  vpc_id   = var.vpc_id
+  name        = "${var.prefix}-gateway-green-tg"
+  port        = 8080
+  protocol    = "HTTP"
+  vpc_id      = var.vpc_id
+  target_type = "ip"
+
+  deregistration_delay = 10
 
   health_check {
-    path = "/actuator/health"
+    path                = "/actuator/health"
+    interval            = 10
+    timeout             = 5
+    healthy_threshold   = 2
+    unhealthy_threshold = 3
+    matcher             = "200-399"
   }
 }
 
 # Eureka
-resource "aws_lb_target_group" "eureka_blue" {
-  name     = "${var.prefix}-eureka-blue-tg"
-  port     = 8761
-  protocol = "HTTP"
-  vpc_id   = var.vpc_id
+# resource "aws_lb_target_group" "eureka_blue" {
+#   name     = "${var.prefix}-eureka-blue-tg"
+#   port     = 8761
+#   protocol = "HTTP"
+#   vpc_id   = var.vpc_id
+#   target_type = "ip"
 
-  health_check {
-    path = "/eureka/apps"
-  }
-}
+#   health_check {
+#     path = "/eureka/apps"
+#   }
+# }
 
-resource "aws_lb_target_group" "eureka_green" {
-  name     = "${var.prefix}-eureka-green-tg"
-  port     = 8761
-  protocol = "HTTP"
-  vpc_id   = var.vpc_id
+# resource "aws_lb_target_group" "eureka_green" {
+#   name     = "${var.prefix}-eureka-green-tg"
+#   port     = 8761
+#   protocol = "HTTP"
+#   vpc_id   = var.vpc_id
+#   target_type = "ip"
 
-  health_check {
-    path = "/eureka/apps"
-  }
-}
+#   health_check {
+#     path = "/eureka/apps"
+#   }
+# }
 
 ###### HTTP 80 (DEV)
 resource "aws_lb_listener" "http" {
@@ -65,87 +83,41 @@ resource "aws_lb_listener" "http" {
   protocol          = "HTTP"
 
   default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.gateway_blue.arn
+    type = "forward"
+    target_group_arn = (
+      var.active_color == "blue"
+      ? aws_lb_target_group.gateway_blue.arn
+      : aws_lb_target_group.gateway_green.arn
+    )
   }
+
+  depends_on = [
+    aws_lb_target_group.gateway_blue,
+    aws_lb_target_group.gateway_green
+  ]
 }
 
-resource "aws_lb_listener_rule" "eureka_rule" {
-  listener_arn = aws_lb_listener.http.arn
-  priority     = 10
+resource "aws_lb_listener" "http_dummy" {
+  load_balancer_arn = aws_lb.service.arn
+  port              = 81
+  protocol          = "HTTP"
 
-  action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.eureka_blue.arn
-  }
-
-  condition {
-    path_pattern {
-      values = ["/eureka/*"]
+  default_action {
+    type = "forward"
+    forward {
+      target_group {
+        arn    = aws_lb_target_group.gateway_blue.arn
+        weight = 1
+      }
+      target_group {
+        arn    = aws_lb_target_group.gateway_green.arn
+        weight = 1
+      }
     }
   }
+
+  depends_on = [
+    aws_lb_target_group.gateway_blue,
+    aws_lb_target_group.gateway_green
+  ]
 }
-
-resource "aws_lb_listener_rule" "gateway_rule" {
-  listener_arn = aws_lb_listener.http.arn
-  priority     = 20
-
-  action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.gateway_blue.arn
-  }
-
-  condition {
-    path_pattern {
-      values = ["/*"]
-    }
-  }
-}
-
-###### HTTPS 443 (PROD)
-# resource "aws_lb_listener" "https" {
-#   count = var.acm_certificate_arn != null ? 1 : 0
-
-#   load_balancer_arn = aws_lb.service.arn
-#   port              = 443
-#   protocol          = "HTTPS"
-#   ssl_policy        = "ELBSecurityPolicy-2016-08"
-#   certificate_arn   = var.acm_certificate_arn
-
-#   default_action {
-#     type             = "forward"
-#     target_group_arn = aws_lb_target_group.gateway_blue.arn
-#   }
-# }
-
-# resource "aws_lb_listener_rule" "eureka_rule" {
-#   listener_arn = aws_lb_listener.https.arn
-#   priority     = 10
-
-#   action {
-#     type             = "forward"
-#     target_group_arn = aws_lb_target_group.eureka_blue.arn
-#   }
-
-#   condition {
-#     path_pattern {
-#       values = ["/eureka/*"]
-#     }
-#   }
-# }
-
-# resource "aws_lb_listener_rule" "gateway_rule" {
-#   listener_arn = aws_lb_listener.https.arn
-#   priority     = 20
-
-#   action {
-#     type             = "forward"
-#     target_group_arn = aws_lb_target_group.gateway_blue.arn
-#   }
-
-#   condition {
-#     path_pattern {
-#       values = ["/*"]
-#     }
-#   }
-# }
