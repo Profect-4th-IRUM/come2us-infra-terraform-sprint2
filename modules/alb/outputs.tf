@@ -1,12 +1,3 @@
-# Jenkins ALB
-output "jenkins_alb_dns" {
-  value = aws_lb.jenkins.dns_name
-}
-
-output "jenkins_tg_arn" {
-  value = aws_lb_target_group.jenkins.arn
-}
-
 # Service ALB
 output "service_alb_dns" {
   value = aws_lb.service.dns_name
