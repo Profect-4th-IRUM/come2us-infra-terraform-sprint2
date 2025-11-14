@@ -52,12 +52,14 @@ module "jenkins" {
 }
 
 module "alb_jenkins" {
-  source             = "./modules/alb"
+  source             = "./modules/alb_jenkins"
   vpc_id             = module.network.vpc_id
   alb_sg_id          = module.sg.alb_sg_id
   subnet_ids         = module.network.public_subnet_ids
   target_instance_id = module.jenkins.instance_id
   prefix             = "${var.prefix}-jenkins"
+
+  depends_on = [module.jenkins]
 }
 
 module "alb_service" {
