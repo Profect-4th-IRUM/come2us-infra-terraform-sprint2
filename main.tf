@@ -32,6 +32,7 @@ module "network" {
 module "sg" {
   source = "./modules/sg"
   vpc_id = module.network.vpc_id
+  vpc_cidr = var.vpc_cidr
 }
 
 module "keypair" {
