@@ -21,11 +21,11 @@ resource "aws_db_instance" "come2us_rds" {
 
   skip_final_snapshot        = true
   deletion_protection        = false
-  multi_az                   = true
+  multi_az                   = true # 프리티어는 multi_az 사용 불가
   publicly_accessible        = false
   storage_encrypted          = false
   auto_minor_version_upgrade = true
-  backup_retention_period    = 7
+  backup_retention_period    = 1 # 프리티어는 1일이 최대
 
   vpc_security_group_ids = [var.sg_id]
   db_subnet_group_name   = aws_db_subnet_group.come2us_db_subnet.name

@@ -22,12 +22,37 @@ resource "aws_cloudwatch_log_group" "ecs" {
 }
 
 locals {
-  task_def = templatefile("${path.module}/task-definition.json", {
+  profile = var.profile_active
+  config_server_url = "http://${var.config_server_host}:${var.config_server_port}"
+  eureka_host = var.eureka_host
+  eureka_port = var.eureka_port
+
+  task_def_blue = templatefile("${path.module}/task-definition-blue.json", {
+    container_name = var.container_name
     ecr_image      = var.ecr_image
     image_tag      = var.image_tag
     log_group      = aws_cloudwatch_log_group.ecs.name
     region         = var.region
     container_port = var.container_port
+
+    profile = local.profile
+    config_server_url = local.config_server_url
+    eureka_host = local.eureka_host
+    eureka_port = local.eureka_port
+  })
+
+  task_def_green = templatefile("${path.module}/task-definition-green.json", {
+    container_name = var.container_name
+    ecr_image      = var.ecr_image
+    image_tag      = var.image_tag
+    log_group      = aws_cloudwatch_log_group.ecs.name
+    region         = var.region
+    container_port = var.container_port
+
+    profile = local.profile
+    config_server_url = local.config_server_url
+    eureka_host = local.eureka_host
+    eureka_port = local.eureka_port
   })
 }
 
@@ -56,10 +81,20 @@ resource "aws_ecs_service" "blue" {
     assign_public_ip = false
   }
 
-  load_balancer {
-    target_group_arn = var.alb_target_group_blue
-    container_name   = "app"
-    container_port   = var.container_port
+  dynamic "service_registries" {
+    for_each = var.service_discovery_arn != "" ? [1] : []
+    content {
+      registry_arn = var.service_discovery_arn
+    }
+  }
+
+  dynamic "load_balancer" {
+    for_each = var.alb_target_group_blue != null ? [1] : []
+    content {
+      target_group_arn = var.alb_target_group_blue
+      container_name   = var.container_name
+      container_port   = var.container_port
+    }
   }
 
   lifecycle {
@@ -83,10 +118,20 @@ resource "aws_ecs_service" "green" {
     assign_public_ip = false
   }
 
-  load_balancer {
-    target_group_arn = var.alb_target_group_green
-    container_name   = "app"
-    container_port   = var.container_port
+  dynamic "service_registries" {
+    for_each = var.service_discovery_arn != "" ? [1] : []
+    content {
+      registry_arn = var.service_discovery_arn
+    }
+  }
+
+  dynamic "load_balancer" {
+    for_each = var.alb_target_group_green != null ? [1] : []
+    content {
+      target_group_arn = var.alb_target_group_green
+      container_name   = var.container_name
+      container_port   = var.container_port
+    }
   }
 
   lifecycle {

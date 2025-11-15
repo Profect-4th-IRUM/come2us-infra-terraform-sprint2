@@ -1,0 +1,39 @@
+[
+  {
+    "name": "app",
+    "image": "${ecr_image}:${image_tag}",
+    "essential": true,
+    "portMappings": [
+      {
+        "containerPort": ${container_port},
+        "hostPort": ${container_port}
+      }
+    ],
+    "environment": [
+      {
+        "name": "CONFIG_SERVER_URL",
+        "value": "${config_server_url}"
+      },
+      {
+        "name": "EUREKA_HOST",
+        "value": "${eureka_host}"
+      },
+      {
+        "name": "EUREKA_PORT",
+        "value": "${eureka_port}"
+      },
+      {
+        "name": "PROFILE_ACTIVE",
+        "value": "${profile}"
+      }
+    ],
+    "logConfiguration": {
+      "logDriver": "awslogs",
+      "options": {
+        "awslogs-group": "${log_group}",
+        "awslogs-region": "${region}",
+        "awslogs-stream-prefix": "ecs"
+      }
+    }
+  }
+]
