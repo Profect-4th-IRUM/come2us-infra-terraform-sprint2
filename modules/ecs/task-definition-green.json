@@ -1,6 +1,6 @@
 [
   {
-    "name": "app",
+    "name": "${container_name}",
     "image": "${ecr_image}:${image_tag}",
     "essential": true,
     "portMappings": [

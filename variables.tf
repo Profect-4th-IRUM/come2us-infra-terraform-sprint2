@@ -134,6 +134,7 @@ variable "ecr_uri" {
 variable "acm_certificate_arn" {
   description = "ACM Certificate ARN for HTTPS listener"
   type        = string
+  default     = ""
 }
 
 # ElastiCache
@@ -151,4 +152,59 @@ variable "elasticache_auth_token" {
   type      = string
   default   = null
   sensitive = true
+}
+
+# container port
+variable "eureka_port" {
+  description = "Container Port for Eureka"
+  type        = number
+  default     = 8761
+}
+
+variable "config_port" {
+  description = "Container Port for Config Server"
+  type        = number
+  default     = 8888
+}
+
+variable "gateway_port" {
+  description = "Container Port for API Gateway"
+  type        = number
+  default     = 8080
+}
+
+variable "member_port" {
+  description = "Container Port for Member Service"
+  type        = number
+  default     = 8081
+}
+
+variable "product_port" {
+  description = "Container Port for Product Service"
+  type        = number
+  default     = 8082
+}
+
+variable "order_port" {
+  description = "Container Port for Order Service"
+  type        = number
+  default     = 8083
+}
+
+variable "payment_port" {
+  description = "Container Port for Payment Service"
+  type        = number
+  default     = 8084
+}
+
+variable "ai_port" {
+  description = "Container Port for AI Service"
+  type        = number
+  default     = 8085
+}
+
+variable "spring_profile_active" {
+  description = "Active Profile of Spring Application"
+  type        = string
+  default     = "prod"
 }
