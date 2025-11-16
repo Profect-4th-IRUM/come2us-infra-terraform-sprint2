@@ -230,3 +230,18 @@ variable "spring_profile_active" {
   type        = string
   default     = "prod"
 }
+
+variable "git_username" {
+  description = "GIT_USERNAME"
+  type        = string
+}
+
+variable "git_token" {
+  description = "GIT_TOKEN"
+  type        = string
+}
+
+variable "jwt_secret" {
+  description = "JWT_ACCESS_TOKEN_SECRET"
+  type        = string
+}

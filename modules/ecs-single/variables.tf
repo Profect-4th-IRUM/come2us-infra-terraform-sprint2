@@ -100,3 +100,9 @@ variable "assign_public_ip" {
   type        = bool
   default     = false
 }
+
+variable "ssm_parameters" {
+  type        = map(string)
+  description = "SSM parameter ARNs to inject into the task"
+  default     = {}
+}
