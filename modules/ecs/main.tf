@@ -1,23 +1,5 @@
-resource "aws_iam_role" "ecs_task_exec" {
-  name = "${var.prefix}-ecsTaskExecutionRole"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [{
-      Effect    = "Allow",
-      Principal = { Service = "ecs-tasks.amazonaws.com" },
-      Action    = "sts:AssumeRole"
-    }]
-  })
-}
-
-resource "aws_iam_role_policy_attachment" "ecs_exec_policy" {
-  role       = aws_iam_role.ecs_task_exec.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
-}
-
 resource "aws_cloudwatch_log_group" "ecs" {
-  name              = "/ecs/${var.prefix}"
+  name              = "/ecs/${var.container_name}"
   retention_in_days = 30
 }
 
@@ -30,7 +12,7 @@ locals {
   task_def_blue = templatefile("${path.module}/task-definition-blue.json", {
     container_name = var.container_name
     ecr_image      = var.ecr_image
-    image_tag      = var.image_tag
+    image_tag      = var.image_tag_blue
     log_group      = aws_cloudwatch_log_group.ecs.name
     region         = var.region
     container_port = var.container_port
@@ -44,7 +26,7 @@ locals {
   task_def_green = templatefile("${path.module}/task-definition-green.json", {
     container_name = var.container_name
     ecr_image      = var.ecr_image
-    image_tag      = var.image_tag
+    image_tag      = var.image_tag_green
     log_group      = aws_cloudwatch_log_group.ecs.name
     region         = var.region
     container_port = var.container_port
@@ -62,8 +44,8 @@ resource "aws_ecs_task_definition" "blue" {
   network_mode             = "awsvpc"
   cpu                      = "512"
   memory                   = "1024"
-  execution_role_arn       = aws_iam_role.ecs_task_exec.arn
-  task_role_arn            = aws_iam_role.ecs_task_exec.arn
+  execution_role_arn       = var.execution_role_arn
+  task_role_arn            = var.task_role_arn
   container_definitions    = local.task_def_blue
 }
 
@@ -73,8 +55,8 @@ resource "aws_ecs_task_definition" "green" {
   network_mode             = "awsvpc"
   cpu                      = "512"
   memory                   = "1024"
-  execution_role_arn       = aws_iam_role.ecs_task_exec.arn
-  task_role_arn            = aws_iam_role.ecs_task_exec.arn
+  execution_role_arn       = var.execution_role_arn
+  task_role_arn            = var.task_role_arn
   container_definitions    = local.task_def_green
 }
 

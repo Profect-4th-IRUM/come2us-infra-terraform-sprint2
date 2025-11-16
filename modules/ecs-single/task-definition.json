@@ -1,0 +1,31 @@
+[
+  {
+    "name": "${container_name}",
+    "image": "${ecr_image}:${image_tag}",
+    "essential": true,
+    "portMappings": [
+      {
+        "containerPort": ${container_port},
+        "hostPort": ${container_port}
+      }
+    ],
+    "environment": [
+      {
+        "name": "CONFIG_SERVER_URL",
+        "value": "${config_server_url}"
+      },
+      {
+        "name": "PROFILE_ACTIVE",
+        "value": "${profile}"
+      }
+    ],
+    "logConfiguration": {
+      "logDriver": "awslogs",
+      "options": {
+        "awslogs-group": "${log_group}",
+        "awslogs-region": "${region}",
+        "awslogs-stream-prefix": "ecs"
+      }
+    }
+  }
+]

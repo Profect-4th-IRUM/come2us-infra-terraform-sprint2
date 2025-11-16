@@ -114,6 +114,11 @@ resource "aws_ecs_cluster" "come2us" {
   name = "${var.prefix}-cluster"
 }
 
+module "ecs_iam" {
+  source = "./modules/iam"
+  prefix = var.prefix
+}
+
 # Cloud Map
 resource "aws_service_discovery_private_dns_namespace" "come2us" {
   name        = "${var.prefix}.local"
@@ -189,37 +194,17 @@ module "ecs_gateway" {
   active_color = var.active_color
   warmup_color = var.warmup_color
 
-  depends_on = [module.ecs_config_server]
-}
-
-module "ecs_eureka" {
-  source        = "./modules/ecs"
-  prefix        = "${var.prefix}-eureka"
-  subnets       = module.network.private_subnet_ids
-  backend_sg_id = module.sg.backend_sg_id
-
-  ecr_image      = "${var.ecr_uri}-eureka"
-  image_tag      = var.image_tag
-  container_name = "${var.prefix}-eureka"
-  container_port = var.eureka_port
-  region         = var.region
-
-  profile_active = var.spring_profile_active
-  config_server_host = "${aws_service_discovery_service.config.name}.${var.prefix}.local"
-  config_server_port = var.config_port
-
-  cluster_name = aws_ecs_cluster.come2us.name
-  active_color = var.active_color
-  warmup_color = var.warmup_color
-
-  service_discovery_arn = aws_service_discovery_service.eureka.arn
+  execution_role_arn = module.ecs_iam.task_execution_role_arn
+  task_role_arn      = module.ecs_iam.task_role_arn
 
   depends_on = [module.ecs_config_server]
 }
 
 module "ecs_config_server" {
-  source        = "./modules/ecs"
+  source = "./modules/ecs-single"
+
   prefix        = "${var.prefix}-config"
+  cluster_name  = aws_ecs_cluster.come2us.name
   subnets       = module.network.private_subnet_ids
   backend_sg_id = module.sg.backend_sg_id
 
@@ -229,11 +214,44 @@ module "ecs_config_server" {
   container_port = var.config_port
   region         = var.region
 
-  profile_active = var.spring_profile_active
+  profile_active     = var.spring_profile_active
+  config_server_host = ""
+  config_server_port = var.config_port
 
-  cluster_name = aws_ecs_cluster.come2us.name
-  active_color = var.active_color
-  warmup_color = var.warmup_color
+  execution_role_arn = module.ecs_iam.task_execution_role_arn
+  task_role_arn      = module.ecs_iam.task_role_arn
 
   service_discovery_arn = aws_service_discovery_service.config.arn
+
+  desired_count    = 2
+  assign_public_ip = false
+}
+
+module "ecs_eureka" {
+  source = "./modules/ecs-single"
+
+  prefix        = "${var.prefix}-eureka"
+  cluster_name  = aws_ecs_cluster.come2us.name
+  subnets       = module.network.private_subnet_ids
+  backend_sg_id = module.sg.backend_sg_id
+
+  ecr_image      = "${var.ecr_uri}-eureka"
+  image_tag      = var.image_tag
+  container_name = "${var.prefix}-eureka"
+  container_port = var.eureka_port
+  region         = var.region
+
+  profile_active     = var.spring_profile_active
+  config_server_host = "${aws_service_discovery_service.config.name}.${var.prefix}.local"
+  config_server_port = var.config_port
+
+  execution_role_arn = module.ecs_iam.task_execution_role_arn
+  task_role_arn      = module.ecs_iam.task_role_arn
+
+  service_discovery_arn = aws_service_discovery_service.eureka.arn
+
+  desired_count    = 2
+  assign_public_ip = false
+
+  depends_on = [module.ecs_config_server]
 }
