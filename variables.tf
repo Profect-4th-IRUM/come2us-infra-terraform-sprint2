@@ -225,8 +225,63 @@ variable "ai_port" {
   default     = 8085
 }
 
+# Profile
 variable "spring_profile_active" {
   description = "Active Profile of Spring Application"
   type        = string
   default     = "prod"
+}
+
+# Git Config
+variable "git_username" {
+  description = "GIT_USERNAME"
+  type        = string
+}
+
+variable "git_token" {
+  description = "GIT_TOKEN"
+  type        = string
+}
+
+# JWT Config
+variable "jwt_access_secret" {
+  description = "JWT_ACCESS_TOKEN_SECRET"
+  type        = string
+}
+
+variable "jwt_refresh_secret" {
+  description = "JWT REFRESH_TOKEN_SECRET"
+  type        = string
+}
+
+variable "jwt_access_expiration_time" {
+  description = "JWT_ACCESS_TOKEN_EXPIRATION_TIME"
+  type        = string
+}
+
+variable "jwt_refresh_expiration_time" {
+  description = "JWT_REFRESH_TOKEN_EXPIRATION_TIME"
+  type        = string
+}
+
+variable "jwt_issuer" {
+  description = "JWT_ISSUER"
+  type        = string
+}
+
+# Payment Config
+variable "toss_secret" {
+  description = "Toss Payments Secret Key"
+  type        = string
+}
+
+# AI Config
+variable "gemini_api_url" {
+  description = "Gemini API URL"
+  type        = string
+}
+
+variable "gemini_api_key" {
+  description = "Gemini API KEY"
+  type        = string
 }

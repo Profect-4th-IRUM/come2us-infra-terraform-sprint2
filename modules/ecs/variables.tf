@@ -42,3 +42,9 @@ variable "eureka_port" { default = 8761}
 
 variable "execution_role_arn" {}
 variable "task_role_arn" {}
+
+variable "ssm_parameters" {
+  type        = map(string)
+  description = "SSM parameter ARNs to inject into the task"
+  default     = {}
+}

@@ -119,6 +119,21 @@ module "ecs_iam" {
   prefix = var.prefix
 }
 
+module "ssm" {
+  source = "./modules/ssm"
+
+  parameters = {
+    "/${var.prefix}/config/GIT_USERNAME"             = var.git_username
+    "/${var.prefix}/config/GIT_TOKEN"                = var.git_token
+    "/${var.prefix}/jwt/JWT_ACCESS_TOKEN_SECRET"     = var.jwt_access_secret
+    "/${var.prefix}/jwt/JWT_REFRESH_TOKEN_SECRET"    = var.jwt_refresh_secret
+    "/${var.prefix}/rds/POSTGRESQL_PASSWORD"         = var.rds_password
+    "/${var.prefix}/redis/DATA_REDIS_PASSWORD"       = var.elasticache_auth_token
+    "/${var.prefix}/payment/TOSSPAYMENTS_SECRET_KEY" = var.toss_secret
+    "/${var.prefix}/ai/GEMINI_API_KEY"               = var.gemini_api_key
+  }
+}
+
 # Cloud Map
 resource "aws_service_discovery_private_dns_namespace" "come2us" {
   name        = "${var.prefix}.local"
@@ -189,6 +204,10 @@ module "ecs_gateway" {
   execution_role_arn = module.ecs_iam.task_execution_role_arn
   task_role_arn      = module.ecs_iam.task_role_arn
 
+  ssm_parameters = {
+    JWT_ACCESS_TOKEN_SECRET = module.ssm.parameter_arns["/${var.prefix}/jwt/JWT_ACCESS_TOKEN_SECRET"]
+  }
+
   depends_on = [module.ecs_config_server]
 }
 
@@ -217,6 +236,12 @@ module "ecs_config_server" {
 
   desired_count    = 2
   assign_public_ip = false
+
+  ssm_parameters = {
+    GIT_USERNAME            = module.ssm.parameter_arns["/${var.prefix}/config/GIT_USERNAME"]
+    GIT_TOKEN               = module.ssm.parameter_arns["/${var.prefix}/config/GIT_TOKEN"]
+    JWT_ACCESS_TOKEN_SECRET = module.ssm.parameter_arns["/${var.prefix}/jwt/JWT_ACCESS_TOKEN_SECRET"]
+  }
 }
 
 module "ecs_eureka" {
@@ -236,6 +261,8 @@ module "ecs_eureka" {
   profile_active     = var.spring_profile_active
   config_server_host = "${aws_service_discovery_service.config.name}.${var.prefix}.local"
   config_server_port = var.config_port
+  eureka_host        = "${aws_service_discovery_service.eureka.name}.${var.prefix}.local"
+  eureka_port        = var.eureka_port
 
   execution_role_arn = module.ecs_iam.task_execution_role_arn
   task_role_arn      = module.ecs_iam.task_role_arn

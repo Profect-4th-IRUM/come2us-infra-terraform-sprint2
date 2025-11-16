@@ -132,16 +132,47 @@
       "Resource": "*"
     },
     {
-      "Sid": "ParameterStoreAccess",
+      "Sid": "ParameterStoreReadAccess",
       "Effect": "Allow",
       "Action": [
         "ssm:GetParameter",
         "ssm:GetParameters",
-        "ssm:GetParametersByPath",
+        "ssm:GetParametersByPath"
+      ],
+      "Resource": "arn:aws:ssm:${region}:${account_id}:parameter/*"
+    },
+    {
+      "Sid": "ParameterStoreWriteAccess",
+      "Effect": "Allow",
+      "Action": [
         "ssm:PutParameter",
         "ssm:DeleteParameter"
       ],
       "Resource": "arn:aws:ssm:${region}:${account_id}:parameter/*"
+    },
+    {
+      "Sid": "ParameterStoreMetadataAccess",
+      "Effect": "Allow",
+      "Action": [
+        "ssm:DescribeParameters",
+        "ssm:DescribeParameterHistory",
+        "ssm:ListTagsForResource"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "IamPolicyManagementAccess",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreatePolicy",
+        "iam:CreatePolicyVersion",
+        "iam:DeletePolicy",
+        "iam:DeletePolicyVersion",
+        "iam:GetPolicy",
+        "iam:GetPolicyVersion",
+        "iam:ListPolicyVersions"
+      ],
+      "Resource": "arn:aws:iam::${account_id}:policy/*"
     }
   ]
 }
