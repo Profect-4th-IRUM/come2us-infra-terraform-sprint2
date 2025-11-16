@@ -12,11 +12,11 @@ output "gateway_tg_green_arn" {
   value = aws_lb_target_group.gateway_green.arn
 }
 
-# Eureka TGs
-output "eureka_tg_blue_arn" {
-  value = aws_lb_target_group.eureka_blue.arn
-}
+# # Eureka TGs
+# output "eureka_tg_blue_arn" {
+#   value = aws_lb_target_group.eureka_blue.arn
+# }
 
-output "eureka_tg_green_arn" {
-  value = aws_lb_target_group.eureka_green.arn
-}
+# output "eureka_tg_green_arn" {
+#   value = aws_lb_target_group.eureka_green.arn
+# }

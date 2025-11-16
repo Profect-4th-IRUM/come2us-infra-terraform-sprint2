@@ -15,14 +15,6 @@
         "value": "${config_server_url}"
       },
       {
-        "name": "EUREKA_HOST",
-        "value": "${eureka_host}"
-      },
-      {
-        "name": "EUREKA_PORT",
-        "value": "${eureka_port}"
-      },
-      {
         "name": "PROFILE_ACTIVE",
         "value": "${profile}"
       }

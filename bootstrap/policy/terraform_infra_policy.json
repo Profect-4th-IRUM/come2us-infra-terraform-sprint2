@@ -95,6 +95,53 @@
         "iam:DeleteServiceLinkedRole"
       ],
       "Resource": "*"
+    },
+    {
+      "Sid": "CloudMapAccess",
+      "Effect": "Allow",
+      "Action": [
+        "servicediscovery:CreatePrivateDnsNamespace",
+        "servicediscovery:GetOperation",
+        "servicediscovery:CreateService",
+        "servicediscovery:UpdateService",
+        "servicediscovery:DeleteService",
+        "servicediscovery:RegisterInstance",
+        "servicediscovery:DeregisterInstance",
+        "servicediscovery:GetService",
+        "servicediscovery:ListServices",
+        "servicediscovery:ListNamespaces",
+        "servicediscovery:DeleteNamespace",
+        "servicediscovery:GetNamespace",
+        "servicediscovery:ListTagsForResource",
+        "servicediscovery:TagResource",
+        "servicediscovery:UntagResource"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "Route53Access",
+      "Effect": "Allow",
+      "Action": [
+        "route53:CreateHostedZone",
+        "route53:DeleteHostedZone",
+        "route53:GetHostedZone",
+        "route53:ListHostedZones",
+        "route53:ChangeResourceRecordSets",
+        "route53:ListResourceRecordSets"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "ParameterStoreAccess",
+      "Effect": "Allow",
+      "Action": [
+        "ssm:GetParameter",
+        "ssm:GetParameters",
+        "ssm:GetParametersByPath",
+        "ssm:PutParameter",
+        "ssm:DeleteParameter"
+      ],
+      "Resource": "arn:aws:ssm:${region}:${account_id}:parameter/*"
     }
   ]
 }

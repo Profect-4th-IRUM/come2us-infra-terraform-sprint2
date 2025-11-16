@@ -41,6 +41,14 @@ resource "aws_security_group" "backend_sg" {
     protocol        = "tcp"
     security_groups = [aws_security_group.alb_sg.id]
   }
+  
+  ingress {
+    description = "Allow internal backend communication"
+    from_port = 8000
+    to_port = 10000
+    protocol = "tcp"
+    cidr_blocks = [var.vpc_cidr]
+  }
 
   egress {
     from_port   = 0

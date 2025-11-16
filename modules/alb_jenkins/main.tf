@@ -19,7 +19,7 @@ resource "aws_lb_target_group" "this" {
   vpc_id   = var.vpc_id
 
   health_check {
-    path                = "/"
+    path                = "/login"
     port                = "8080"
     healthy_threshold   = 2
     unhealthy_threshold = 2
