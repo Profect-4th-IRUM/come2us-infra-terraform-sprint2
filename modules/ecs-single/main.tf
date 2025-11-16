@@ -27,10 +27,10 @@ locals {
       }]
 
       environment = [
-        { name = "PROFILE_ACTIVE",    value = var.profile_active },
+        { name = "PROFILE_ACTIVE", value = var.profile_active },
         { name = "CONFIG_SERVER_URL", value = local.config_server_url },
-        { name = "EUREKA_HOST",       value = var.eureka_host },
-        { name = "EUREKA_PORT",       value = tostring(var.eureka_port) }
+        { name = "EUREKA_HOST", value = var.eureka_host },
+        { name = "EUREKA_PORT", value = tostring(var.eureka_port) }
       ]
 
       secrets = local.secrets_list

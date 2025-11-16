@@ -4,10 +4,10 @@ resource "aws_cloudwatch_log_group" "ecs" {
 }
 
 locals {
-  profile = var.profile_active
+  profile           = var.profile_active
   config_server_url = "http://${var.config_server_host}:${var.config_server_port}"
-  eureka_host = var.eureka_host
-  eureka_port = tostring(var.eureka_port)
+  eureka_host       = var.eureka_host
+  eureka_port       = tostring(var.eureka_port)
 
   secrets_list = [
     for key, arn in var.ssm_parameters :

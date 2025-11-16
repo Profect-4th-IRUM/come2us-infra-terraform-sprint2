@@ -30,8 +30,8 @@ module "network" {
 }
 
 module "sg" {
-  source = "./modules/sg"
-  vpc_id = module.network.vpc_id
+  source   = "./modules/sg"
+  vpc_id   = module.network.vpc_id
   vpc_cidr = var.vpc_cidr
 }
 
@@ -135,56 +135,29 @@ module "ssm" {
 }
 
 # Cloud Map
-resource "aws_service_discovery_private_dns_namespace" "come2us" {
-  name        = "${var.prefix}.local"
-  description = "Service discovery namespace for internal ECS services"
-  vpc         = module.network.vpc_id
-}
+module "cloudmap" {
+  source = "./modules/cloudmap"
 
-# Cloud Map - config-server
-resource "aws_service_discovery_service" "config" {
-  name = "${var.prefix}-config"
-
-  dns_config {
-    namespace_id = aws_service_discovery_private_dns_namespace.come2us.id
-
-    dns_records {
-      ttl  = 10
-      type = "A"
-    }
-
-    routing_policy = "MULTIVALUE"
-  }
-}
-
-# Cloud Map - eureka(service discovery)
-resource "aws_service_discovery_service" "eureka" {
-  name = "${var.prefix}-eureka"
-
-  dns_config {
-    namespace_id = aws_service_discovery_private_dns_namespace.come2us.id
-
-    dns_records {
-      ttl  = 10
-      type = "A"
-    }
-
-    routing_policy = "MULTIVALUE"
+  prefix = var.prefix
+  vpc_id = module.network.vpc_id
+  services = {
+    config = {}
+    eureka = {}
   }
 }
 
 module "ecs_gateway" {
-  source                 = "./modules/ecs"
+  source = "./modules/ecs"
 
-  prefix                 = "${var.prefix}-gateway"
-  cluster_name = aws_ecs_cluster.come2us.name
-  subnets                = module.network.private_subnet_ids
-  backend_sg_id          = module.sg.backend_sg_id
+  prefix        = "${var.prefix}-gateway"
+  cluster_name  = aws_ecs_cluster.come2us.name
+  subnets       = module.network.private_subnet_ids
+  backend_sg_id = module.sg.backend_sg_id
 
   alb_target_group_blue  = module.alb_service.gateway_tg_blue_arn
   alb_target_group_green = module.alb_service.gateway_tg_green_arn
 
-  image_tag_blue = var.gateway_image_tag_blue
+  image_tag_blue  = var.gateway_image_tag_blue
   image_tag_green = var.gateway_image_tag_green
 
   ecr_image      = "${var.ecr_uri}-gateway"
@@ -192,11 +165,11 @@ module "ecs_gateway" {
   container_port = var.gateway_port
   region         = var.region
 
-  profile_active = var.spring_profile_active
-  config_server_host = "${aws_service_discovery_service.config.name}.${var.prefix}.local"
+  profile_active     = var.spring_profile_active
+  config_server_host = "${module.cloudmap.service_names["config"]}.${module.cloudmap.namespace_name}"
   config_server_port = var.config_port
-  eureka_host     = "${aws_service_discovery_service.eureka.name}.${var.prefix}.local"
-  eureka_port    = var.eureka_port
+  eureka_host        = "${module.cloudmap.service_names["eureka"]}.${module.cloudmap.namespace_name}"
+  eureka_port        = var.eureka_port
 
   active_color = var.gateway_active_color
   warmup_color = var.gateway_warmup_color
@@ -232,7 +205,7 @@ module "ecs_config_server" {
   execution_role_arn = module.ecs_iam.task_execution_role_arn
   task_role_arn      = module.ecs_iam.task_role_arn
 
-  service_discovery_arn = aws_service_discovery_service.config.arn
+  service_discovery_arn = module.cloudmap.service_arns["config"]
 
   desired_count    = 2
   assign_public_ip = false
@@ -259,18 +232,18 @@ module "ecs_eureka" {
   region         = var.region
 
   profile_active     = var.spring_profile_active
-  config_server_host = "${aws_service_discovery_service.config.name}.${var.prefix}.local"
+  config_server_host = "${module.cloudmap.service_names["config"]}.${module.cloudmap.namespace_name}"
   config_server_port = var.config_port
-  eureka_host        = "${aws_service_discovery_service.eureka.name}.${var.prefix}.local"
+  eureka_host        = "${module.cloudmap.service_names["eureka"]}.${module.cloudmap.namespace_name}"
   eureka_port        = var.eureka_port
 
   execution_role_arn = module.ecs_iam.task_execution_role_arn
   task_role_arn      = module.ecs_iam.task_role_arn
 
-  service_discovery_arn = aws_service_discovery_service.eureka.arn
+  service_discovery_arn = module.cloudmap.service_arns["eureka"]
 
   desired_count    = 2
-  assign_public_ip = true
+  assign_public_ip = false
 
   depends_on = [module.ecs_config_server]
 }
