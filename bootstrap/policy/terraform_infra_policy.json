@@ -101,6 +101,7 @@
       "Effect": "Allow",
       "Action": [
         "servicediscovery:CreatePrivateDnsNamespace",
+        "servicediscovery:UpdatePrivateDnsNamespace",
         "servicediscovery:GetOperation",
         "servicediscovery:CreateService",
         "servicediscovery:UpdateService",
