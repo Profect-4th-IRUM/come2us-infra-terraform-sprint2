@@ -1,4 +1,4 @@
 variable "parameters" {
-  type = map(string)
+  type        = map(string)
   description = "SSM parameters to create (key=name, value=value)"
 }

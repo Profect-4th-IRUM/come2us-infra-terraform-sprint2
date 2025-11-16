@@ -38,7 +38,7 @@ variable "profile_active" {}
 variable "config_server_host" { default = "" }
 variable "config_server_port" { default = 8888 }
 variable "eureka_host" { default = "" }
-variable "eureka_port" { default = 8761}
+variable "eureka_port" { default = 8761 }
 
 variable "execution_role_arn" {}
 variable "task_role_arn" {}
