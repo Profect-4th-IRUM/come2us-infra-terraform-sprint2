@@ -140,12 +140,6 @@ resource "aws_service_discovery_service" "config" {
 
     routing_policy = "MULTIVALUE"
   }
-
-  health_check_config {
-    type = "HTTP"
-    resource_path     = "/"
-    failure_threshold = 1
-  }
 }
 
 # Cloud Map - eureka(service discovery)
@@ -161,12 +155,6 @@ resource "aws_service_discovery_service" "eureka" {
     }
 
     routing_policy = "MULTIVALUE"
-  }
-
-  health_check_config {
-    type              = "HTTP"
-    resource_path     = "/actuator/health"
-    failure_threshold = 1
   }
 }
 
