@@ -123,9 +123,14 @@ module "ssm" {
   source = "./modules/ssm"
 
   parameters = {
-    "/${var.prefix}/config/GIT_USERNAME"            = var.git_username
-    "/${var.prefix}/config/GIT_TOKEN"               = var.git_token
-    "/${var.prefix}/common/JWT_ACCESS_TOKEN_SECRET" = var.jwt_secret
+    "/${var.prefix}/config/GIT_USERNAME"             = var.git_username
+    "/${var.prefix}/config/GIT_TOKEN"                = var.git_token
+    "/${var.prefix}/jwt/JWT_ACCESS_TOKEN_SECRET"     = var.jwt_access_secret
+    "/${var.prefix}/jwt/JWT_REFRESH_TOKEN_SECRET"    = var.jwt_refresh_secret
+    "/${var.prefix}/rds/POSTGRESQL_PASSWORD"         = var.rds_password
+    "/${var.prefix}/redis/DATA_REDIS_PASSWORD"       = var.elasticache_auth_token
+    "/${var.prefix}/payment/TOSSPAYMENTS_SECRET_KEY" = var.toss_secret
+    "/${var.prefix}/ai/GEMINI_API_KEY"               = var.gemini_api_key
   }
 }
 
@@ -200,7 +205,7 @@ module "ecs_gateway" {
   task_role_arn      = module.ecs_iam.task_role_arn
 
   ssm_parameters = {
-    JWT_ACCESS_TOKEN_SECRET = module.ssm.parameter_arns["/${var.prefix}/common/JWT_ACCESS_TOKEN_SECRET"]
+    JWT_ACCESS_TOKEN_SECRET = module.ssm.parameter_arns["/${var.prefix}/jwt/JWT_ACCESS_TOKEN_SECRET"]
   }
 
   depends_on = [module.ecs_config_server]
@@ -235,7 +240,7 @@ module "ecs_config_server" {
   ssm_parameters = {
     GIT_USERNAME            = module.ssm.parameter_arns["/${var.prefix}/config/GIT_USERNAME"]
     GIT_TOKEN               = module.ssm.parameter_arns["/${var.prefix}/config/GIT_TOKEN"]
-    JWT_ACCESS_TOKEN_SECRET = module.ssm.parameter_arns["/${var.prefix}/common/JWT_ACCESS_TOKEN_SECRET"]
+    JWT_ACCESS_TOKEN_SECRET = module.ssm.parameter_arns["/${var.prefix}/jwt/JWT_ACCESS_TOKEN_SECRET"]
   }
 }
 
