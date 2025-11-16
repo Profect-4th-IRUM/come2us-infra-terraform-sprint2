@@ -69,7 +69,7 @@ module "alb_service" {
   alb_sg_id    = module.sg.alb_sg_id
   subnet_ids   = module.network.public_subnet_ids
   prefix       = "${var.prefix}-service"
-  active_color = var.active_color
+  active_color = var.gateway_active_color
   # acm_certificate_arn = var.acm_certificate_arn
 }
 
@@ -172,14 +172,19 @@ resource "aws_service_discovery_service" "eureka" {
 
 module "ecs_gateway" {
   source                 = "./modules/ecs"
+
   prefix                 = "${var.prefix}-gateway"
+  cluster_name = aws_ecs_cluster.come2us.name
   subnets                = module.network.private_subnet_ids
   backend_sg_id          = module.sg.backend_sg_id
+
   alb_target_group_blue  = module.alb_service.gateway_tg_blue_arn
   alb_target_group_green = module.alb_service.gateway_tg_green_arn
 
+  image_tag_blue = var.gateway_image_tag_blue
+  image_tag_green = var.gateway_image_tag_green
+
   ecr_image      = "${var.ecr_uri}-gateway"
-  image_tag      = var.image_tag
   container_name = "${var.prefix}-gateway"
   container_port = var.gateway_port
   region         = var.region
@@ -190,9 +195,8 @@ module "ecs_gateway" {
   eureka_host     = "${aws_service_discovery_service.eureka.name}.${var.prefix}.local"
   eureka_port    = var.eureka_port
 
-  cluster_name = aws_ecs_cluster.come2us.name
-  active_color = var.active_color
-  warmup_color = var.warmup_color
+  active_color = var.gateway_active_color
+  warmup_color = var.gateway_warmup_color
 
   execution_role_arn = module.ecs_iam.task_execution_role_arn
   task_role_arn      = module.ecs_iam.task_role_arn
@@ -209,7 +213,7 @@ module "ecs_config_server" {
   backend_sg_id = module.sg.backend_sg_id
 
   ecr_image      = "${var.ecr_uri}-config"
-  image_tag      = var.image_tag
+  image_tag      = var.config_image_tag
   container_name = "${var.prefix}-config"
   container_port = var.config_port
   region         = var.region
@@ -236,7 +240,7 @@ module "ecs_eureka" {
   backend_sg_id = module.sg.backend_sg_id
 
   ecr_image      = "${var.ecr_uri}-eureka"
-  image_tag      = var.image_tag
+  image_tag      = var.eureka_image_tag
   container_name = "${var.prefix}-eureka"
   container_port = var.eureka_port
   region         = var.region
@@ -251,7 +255,7 @@ module "ecs_eureka" {
   service_discovery_arn = aws_service_discovery_service.eureka.arn
 
   desired_count    = 2
-  assign_public_ip = false
+  assign_public_ip = true
 
   depends_on = [module.ecs_config_server]
 }

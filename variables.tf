@@ -112,19 +112,37 @@ variable "rds_port" {
 }
 
 # ECR image tag
-variable "image_tag" {
+variable "config_image_tag" {
+  description = "ECR Docker image tag"
+  type        = string
+  default     = "latest"
+}
+
+variable "eureka_image_tag" {
+  description = "ECR Docker image tag"
+  type        = string
+  default     = "latest"
+}
+
+variable "gateway_image_tag_blue" {
+  description = "ECR Docker image tag"
+  type        = string
+  default     = "latest"
+}
+
+variable "gateway_image_tag_green" {
   description = "ECR Docker image tag"
   type        = string
   default     = "latest"
 }
 
 # Blue/Green Deployment
-variable "active_color" {
+variable "gateway_active_color" {
   description = "Current active deployment color (blue or green)"
   type        = string
 }
 
-variable "warmup_color" {
+variable "gateway_warmup_color" {
   type    = string
   default = ""
 }

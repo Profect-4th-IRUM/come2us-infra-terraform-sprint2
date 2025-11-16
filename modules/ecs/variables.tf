@@ -12,7 +12,6 @@ variable "warmup_color" {}
 variable "container_port" {}
 variable "ecr_image" {}
 
-variable "image_tag" {}
 variable "image_tag_blue" {}
 variable "image_tag_green" {}
 
