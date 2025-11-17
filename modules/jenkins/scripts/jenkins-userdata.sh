@@ -37,23 +37,32 @@ fi
 chown -R ubuntu:ubuntu "$MNT"
 
 # 2) docker pull 재시도 (exponential backoff, 최대 ~2분)
-IMG="jenkins/jenkins:lts-jdk17"
+IMG="jenkins/jenkins:lts-jdk21"
 for i in 1 2 3 4 5 6; do
   if docker pull "$IMG"; then break; fi
-  sleep $((i*5))
+  sleep $((i * 5))
 done
+
+HOST_DOCKER_GID=$(getent group docker | cut -d: -f3)
+echo "Host Docker GID = $HOST_DOCKER_GID"
 
 # 3) 컨테이너 기동 (존재하면 재사용)
 if ! docker ps -a --format '{{.Names}}' | grep -q '^jenkins$'; then
   docker run -d --name jenkins \
+    --user root \
+    -e "HOST_DOCKER_GID=$HOST_DOCKER_GID" \
     -p 8080:8080 -p 50000:50000 \
     -v "$MNT":/var/jenkins_home \
     -v /var/run/docker.sock:/var/run/docker.sock \
-    "$IMG"
+    "$IMG" \
+    bash -c "
+      groupadd -g $HOST_DOCKER_GID docker || true;
+      usermod -aG docker jenkins || true;
+      exec /usr/bin/tini -- /usr/local/bin/jenkins.sh
+    "
 fi
 
-# 4) 재부팅 자동기동용 systemd 유닛 (네트워크 준비 후 실행)
-cat >/etc/systemd/system/jenkins-container.service <<'SERVICE'
+cat >/etc/systemd/system/jenkins-container.service <<SERVICE
 [Unit]
 Description=Jenkins Docker Container
 Wants=network-online.target docker.service
@@ -63,8 +72,28 @@ Requires=docker.service
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStartPre=/usr/bin/bash -c 'for i in 1 2 3 4 5 6; do docker pull jenkins/jenkins:lts-jdk17 && break || sleep $((i*5)); done'
-ExecStart=/usr/bin/docker start jenkins || /usr/bin/docker run -d --name jenkins -p 8080:8080 -p 50000:50000 -v /mnt/jenkins_data:/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock jenkins/jenkins:lts-jdk17
+Environment="IMG=$IMG"
+Environment="HOST_DOCKER_GID=$HOST_DOCKER_GID"
+
+ExecStartPre=/usr/bin/bash -c '
+  for i in 1 2 3 4 5 6; do 
+    docker pull $IMG && break || sleep \$((i*5));
+  done
+'
+
+ExecStart=/usr/bin/docker start jenkins || /usr/bin/docker run -d --name jenkins \
+    --user root \
+    -e "HOST_DOCKER_GID=\${HOST_DOCKER_GID}" \
+    -p 8080:8080 -p 50000:50000 \
+    -v /mnt/jenkins_data:/var/jenkins_home \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    \${IMG} \
+    bash -c "
+      groupadd -g \${HOST_DOCKER_GID} docker || true;
+      usermod -aG docker jenkins || true;
+      exec /usr/bin/tini -- /usr/local/bin/jenkins.sh
+    "
+
 ExecStop=/usr/bin/docker stop -t 5 jenkins
 
 [Install]
