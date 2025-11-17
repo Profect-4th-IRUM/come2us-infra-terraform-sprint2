@@ -8,3 +8,7 @@ output "bastion_public_ip" {
 output "bastion_ssh" {
   value = module.bastion.ssh_command
 }
+
+output "route53_ns" {
+  value = module.route53.name_servers
+}

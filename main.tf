@@ -247,3 +247,15 @@ module "ecs_eureka" {
 
   depends_on = [module.ecs_config_server]
 }
+
+module "route53" {
+  source = "./modules/route53"
+
+  domain_name = "come2us.store"
+
+  service_alb_dns_name = module.alb_service.service_alb_dns
+  service_alb_zone_id  = module.alb_service.alb_zone_id
+
+  jenkins_alb_dns_name = module.alb_jenkins.jenkins_alb_dns
+  jenkins_alb_zone_id  = module.alb_jenkins.alb_zone_id
+}
