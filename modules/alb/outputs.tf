@@ -12,6 +12,10 @@ output "gateway_tg_green_arn" {
   value = aws_lb_target_group.gateway_green.arn
 }
 
+output "alb_zone_id" {
+  value = aws_lb.service.zone_id
+}
+
 # # Eureka TGs
 # output "eureka_tg_blue_arn" {
 #   value = aws_lb_target_group.eureka_blue.arn
