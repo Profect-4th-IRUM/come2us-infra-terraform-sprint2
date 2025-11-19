@@ -136,6 +136,18 @@ variable "gateway_image_tag_green" {
   default     = "latest"
 }
 
+variable "member_image_tag_blue" {
+  description = "ECR Docker image tag for member-service"
+  type        = string
+  default     = "latest"
+}
+
+variable "member_image_tag_green" {
+  description = "ECR Docker image tag for member-service"
+  type        = string
+  default     = "latest"
+}
+
 # Blue/Green Deployment
 variable "gateway_active_color" {
   description = "Current active deployment color (blue or green)"
@@ -147,6 +159,15 @@ variable "gateway_warmup_color" {
   default = ""
 }
 
+variable "member_active_color" {
+  description = "Current active deployment color (blue or green)"
+  type        = string
+}
+
+variable "member_warmup_color" {
+  type    = string
+  default = ""
+}
 variable "ecr_uri" {
   description = "ECR repository URI"
   type        = string
@@ -256,17 +277,20 @@ variable "jwt_refresh_secret" {
 
 variable "jwt_access_expiration_time" {
   description = "JWT_ACCESS_TOKEN_EXPIRATION_TIME"
-  type        = string
+  type        = number
+  default     = 7200
 }
 
 variable "jwt_refresh_expiration_time" {
   description = "JWT_REFRESH_TOKEN_EXPIRATION_TIME"
-  type        = string
+  type        = number
+  default     = 172800
 }
 
 variable "jwt_issuer" {
   description = "JWT_ISSUER"
   type        = string
+  default     = "irum"
 }
 
 # Payment Config
