@@ -12,5 +12,5 @@ variable "jenkins_ebs_throughput" { default = 125 }
 variable "jenkins_ebs_type" { default = "gp3" }
 variable "docker_ebs_size" { default = 50 }
 variable "docker_ebs_iops" { default = 6000 }
-variable "docker_ebs_throughput" { default = 125 }
+variable "docker_ebs_throughput" { default = 250 }
 variable "docker_ebs_type" { default = "gp3" }

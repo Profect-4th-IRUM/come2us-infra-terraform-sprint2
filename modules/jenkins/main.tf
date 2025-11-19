@@ -105,8 +105,8 @@ resource "aws_instance" "this" {
   root_block_device {
     volume_type = "gp3"
     volume_size = 20
-    iops        = 3000
-    throughput  = 125
+    iops        = 6000
+    throughput  = 250
   }
 }
 
