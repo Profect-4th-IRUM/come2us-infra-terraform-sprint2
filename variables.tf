@@ -148,10 +148,35 @@ variable "member_image_tag_green" {
   default     = "latest"
 }
 
+variable "product_image_tag_blue" {
+  description = "ECR Docker image tag for product-service"
+  type        = string
+  default     = "latest"
+}
+
+variable "product_image_tag_green" {
+  description = "ECR Docker image tag for product-service"
+  type        = string
+  default     = "latest"
+}
+
+variable "order_image_tag_blue" {
+  description = "ECR Docker image tag for order-service"
+  type        = string
+  default     = "latest"
+}
+
+variable "order_image_tag_green" {
+  description = "ECR Docker image tag for order-service"
+  type        = string
+  default     = "latest"
+}
+
 # Blue/Green Deployment
 variable "gateway_active_color" {
   description = "Current active deployment color (blue or green)"
   type        = string
+  default     = "blue"
 }
 
 variable "gateway_warmup_color" {
@@ -168,6 +193,29 @@ variable "member_warmup_color" {
   type    = string
   default = ""
 }
+
+variable "product_active_color" {
+  description = "Current active deployment color (blue or green)"
+  type        = string
+  default     = "blue"
+}
+
+variable "product_warmup_color" {
+  type    = string
+  default = ""
+}
+
+variable "order_active_color" {
+  description = "Current active deployment color (blue or green)"
+  type        = string
+  default     = "blue"
+}
+
+variable "order_warmup_color" {
+  type    = string
+  default = ""
+}
+
 variable "ecr_uri" {
   description = "ECR repository URI"
   type        = string

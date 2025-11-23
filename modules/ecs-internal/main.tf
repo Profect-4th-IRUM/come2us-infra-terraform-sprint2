@@ -44,7 +44,7 @@ locals {
         interval    = 10
         timeout     = 5
         retries     = 3
-        startPeriod = 10
+        startPeriod = 90
       }
 
       logConfiguration = {

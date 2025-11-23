@@ -143,6 +143,11 @@ module "cloudmap" {
   services = {
     config = {}
     eureka = {}
+    member = {}
+    product = {}
+    order = {}
+    payment = {}
+    ai = {}
   }
 }
 
@@ -268,11 +273,15 @@ module "ecs_member" {
   active_color = var.member_active_color
   warmup_color = var.member_warmup_color
 
+  service_discovery_arn = module.cloudmap.service_arns["member"]
+
   environment = {
     PROFILE_ACTIVE    = var.spring_profile_active
     CONFIG_SERVER_URL = "http://${module.cloudmap.service_names["config"]}.${module.cloudmap.namespace_name}:${var.config_port}"
     EUREKA_HOST       = "${module.cloudmap.service_names["eureka"]}.${module.cloudmap.namespace_name}"
     EUREKA_PORT       = var.eureka_port
+
+    MEMBER_HOSTNAME   = "${module.cloudmap.service_names["member"]}.${module.cloudmap.namespace_name}"
     MEMBER_PORT       = var.member_port
 
     WRITE_POSTGRESQL_HOST     = module.rds.rds_primary.address
@@ -286,7 +295,7 @@ module "ecs_member" {
     READ_POSTGRESQL_USERNAME = var.rds_username
 
     DATA_REDIS_HOST = module.elasticache.session_redis.primary_address
-    DATA_REDIS_PORT = 6380
+    DATA_REDIS_PORT = 6379
 
     CACHE_REDIS_HOST = module.elasticache.cache_redis.address
     CACHE_REDIS_PORT = 6379
@@ -303,8 +312,128 @@ module "ecs_member" {
     READ_POSTGRESQL_PASSWORD  = module.ssm.parameter_arns["/${var.prefix}/rds/POSTGRESQL_PASSWORD"]
     DATA_REDIS_PASSWORD       = module.ssm.parameter_arns["/${var.prefix}/redis/DATA_REDIS_PASSWORD"]
   }
+}
 
-  depends_on = [module.ecs_config_server]
+module "ecs_product" {
+  source = "./modules/ecs-internal"
+
+  service_name = "${var.prefix}-product"
+  cluster_name = aws_ecs_cluster.come2us.name
+  region       = var.region
+
+  subnets            = module.network.private_subnet_ids
+  security_group_id  = module.sg.backend_sg_id
+  execution_role_arn = module.ecs_iam.task_execution_role_arn
+  task_role_arn      = module.ecs_iam.task_role_arn
+
+  ecr_image       = "${var.ecr_uri}-product"
+  image_tag_blue  = var.product_image_tag_blue
+  image_tag_green = var.product_image_tag_green
+  container_port  = var.product_port
+
+  active_color = var.product_active_color
+  warmup_color = var.product_warmup_color
+
+  service_discovery_arn = module.cloudmap.service_arns["product"]
+
+  environment = {
+    PROFILE_ACTIVE    = var.spring_profile_active
+    CONFIG_SERVER_URL = "http://${module.cloudmap.service_names["config"]}.${module.cloudmap.namespace_name}:${var.config_port}"
+    EUREKA_HOST       = "${module.cloudmap.service_names["eureka"]}.${module.cloudmap.namespace_name}"
+    EUREKA_PORT       = var.eureka_port
+
+    PRODUCT_HOSTNAME   = "${module.cloudmap.service_names["product"]}.${module.cloudmap.namespace_name}"
+    PRODUCT_PORT       = var.product_port
+
+    WRITE_POSTGRESQL_HOST     = module.rds.rds_primary.address
+    WRITE_POSTGRESQL_PORT     = var.rds_port
+    WRITE_DB_NAME             = var.rds_db_name
+    WRITE_POSTGRESQL_USERNAME = var.rds_username
+
+    READ_POSTGRESQL_HOST     = module.rds.rds_primary.address
+    READ_POSTGRESQL_PORT     = var.rds_port
+    READ_DB_NAME             = var.rds_db_name
+    READ_POSTGRESQL_USERNAME = var.rds_username
+
+    DATA_REDIS_HOST = module.elasticache.session_redis.primary_address
+    DATA_REDIS_PORT = 6379
+
+    CACHE_REDIS_HOST = module.elasticache.cache_redis.address
+    CACHE_REDIS_PORT = 6379
+
+    JWT_ACCESS_TOKEN_EXPIRATION_TIME  = var.jwt_access_expiration_time
+    JWT_REFRESH_TOKEN_EXPIRATION_TIME = var.jwt_refresh_expiration_time
+    JWT_ISSUER                        = var.jwt_issuer
+  }
+
+  ssm_parameters = {
+    JWT_ACCESS_TOKEN_SECRET   = module.ssm.parameter_arns["/${var.prefix}/jwt/JWT_ACCESS_TOKEN_SECRET"]
+    JWT_REFRESH_TOKEN_SECRET  = module.ssm.parameter_arns["/${var.prefix}/jwt/JWT_REFRESH_TOKEN_SECRET"]
+    WRITE_POSTGRESQL_PASSWORD = module.ssm.parameter_arns["/${var.prefix}/rds/POSTGRESQL_PASSWORD"]
+    READ_POSTGRESQL_PASSWORD  = module.ssm.parameter_arns["/${var.prefix}/rds/POSTGRESQL_PASSWORD"]
+    DATA_REDIS_PASSWORD       = module.ssm.parameter_arns["/${var.prefix}/redis/DATA_REDIS_PASSWORD"]
+  }
+}
+
+module "ecs_order" {
+  source = "./modules/ecs-internal"
+
+  service_name = "${var.prefix}-order"
+  cluster_name = aws_ecs_cluster.come2us.name
+  region       = var.region
+
+  subnets            = module.network.private_subnet_ids
+  security_group_id  = module.sg.backend_sg_id
+  execution_role_arn = module.ecs_iam.task_execution_role_arn
+  task_role_arn      = module.ecs_iam.task_role_arn
+
+  ecr_image       = "${var.ecr_uri}-product"
+  image_tag_blue  = var.order_image_tag_blue
+  image_tag_green = var.order_image_tag_green
+  container_port  = var.order_port
+
+  active_color = var.order_active_color
+  warmup_color = var.order_warmup_color
+
+  service_discovery_arn = module.cloudmap.service_arns["order"]
+
+  environment = {
+    PROFILE_ACTIVE    = var.spring_profile_active
+    CONFIG_SERVER_URL = "http://${module.cloudmap.service_names["config"]}.${module.cloudmap.namespace_name}:${var.config_port}"
+    EUREKA_HOST       = "${module.cloudmap.service_names["eureka"]}.${module.cloudmap.namespace_name}"
+    EUREKA_PORT       = var.eureka_port
+
+    PRODUCT_HOSTNAME   = "${module.cloudmap.service_names["order"]}.${module.cloudmap.namespace_name}"
+    PRODUCT_PORT       = var.order_port
+
+    WRITE_POSTGRESQL_HOST     = module.rds.rds_primary.address
+    WRITE_POSTGRESQL_PORT     = var.rds_port
+    WRITE_DB_NAME             = var.rds_db_name
+    WRITE_POSTGRESQL_USERNAME = var.rds_username
+
+    READ_POSTGRESQL_HOST     = module.rds.rds_primary.address
+    READ_POSTGRESQL_PORT     = var.rds_port
+    READ_DB_NAME             = var.rds_db_name
+    READ_POSTGRESQL_USERNAME = var.rds_username
+
+    DATA_REDIS_HOST = module.elasticache.session_redis.primary_address
+    DATA_REDIS_PORT = 6379
+
+    CACHE_REDIS_HOST = module.elasticache.cache_redis.address
+    CACHE_REDIS_PORT = 6379
+
+    JWT_ACCESS_TOKEN_EXPIRATION_TIME  = var.jwt_access_expiration_time
+    JWT_REFRESH_TOKEN_EXPIRATION_TIME = var.jwt_refresh_expiration_time
+    JWT_ISSUER                        = var.jwt_issuer
+  }
+
+  ssm_parameters = {
+    JWT_ACCESS_TOKEN_SECRET   = module.ssm.parameter_arns["/${var.prefix}/jwt/JWT_ACCESS_TOKEN_SECRET"]
+    JWT_REFRESH_TOKEN_SECRET  = module.ssm.parameter_arns["/${var.prefix}/jwt/JWT_REFRESH_TOKEN_SECRET"]
+    WRITE_POSTGRESQL_PASSWORD = module.ssm.parameter_arns["/${var.prefix}/rds/POSTGRESQL_PASSWORD"]
+    READ_POSTGRESQL_PASSWORD  = module.ssm.parameter_arns["/${var.prefix}/rds/POSTGRESQL_PASSWORD"]
+    DATA_REDIS_PASSWORD       = module.ssm.parameter_arns["/${var.prefix}/redis/DATA_REDIS_PASSWORD"]
+  }
 }
 
 module "route53" {
