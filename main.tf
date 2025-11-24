@@ -387,7 +387,7 @@ module "ecs_order" {
   execution_role_arn = module.ecs_iam.task_execution_role_arn
   task_role_arn      = module.ecs_iam.task_role_arn
 
-  ecr_image       = "${var.ecr_uri}-product"
+  ecr_image       = "${var.ecr_uri}-order"
   image_tag_blue  = var.order_image_tag_blue
   image_tag_green = var.order_image_tag_green
   container_port  = var.order_port
@@ -403,8 +403,8 @@ module "ecs_order" {
     EUREKA_HOST       = "${module.cloudmap.service_names["eureka"]}.${module.cloudmap.namespace_name}"
     EUREKA_PORT       = var.eureka_port
 
-    PRODUCT_HOSTNAME   = "${module.cloudmap.service_names["order"]}.${module.cloudmap.namespace_name}"
-    PRODUCT_PORT       = var.order_port
+    ORDER_HOSTNAME   = "${module.cloudmap.service_names["order"]}.${module.cloudmap.namespace_name}"
+    ORDER_PORT       = var.order_port
 
     WRITE_POSTGRESQL_HOST     = module.rds.rds_primary.address
     WRITE_POSTGRESQL_PORT     = var.rds_port
