@@ -1,49 +1,43 @@
 resource "aws_cloudwatch_log_group" "ecs" {
-  name              = "/ecs/${var.container_name}"
-  retention_in_days = 30
+  name              = "/ecs/${var.service_name}"
+  retention_in_days = 7
 }
 
 locals {
-  profile           = var.profile_active
-  config_server_url = "http://${var.config_server_host}:${var.config_server_port}"
-  eureka_host       = var.eureka_host
-  eureka_port       = tostring(var.eureka_port)
-
-  secrets_list = [
-    for key, arn in var.ssm_parameters :
+  container_def_base = jsonencode([
     {
-      name      = key
-      valueFrom = arn
-    }
-  ]
-
-  # BLUE TASK DEF
-  container_blue = [
-    {
-      name      = var.container_name
-      image     = "${var.ecr_image}:${var.image_tag_blue}"
+      name      = var.service_name
+      image     = "__IMAGE__"
       essential = true
 
       portMappings = [{
         containerPort = var.container_port
         hostPort      = var.container_port
+        protocol      = "tcp"
       }]
 
       environment = [
-        { name = "PROFILE_ACTIVE", value = local.profile },
-        { name = "CONFIG_SERVER_URL", value = local.config_server_url },
-        { name = "EUREKA_HOST", value = local.eureka_host },
-        { name = "EUREKA_PORT", value = local.eureka_port }
+        for k, v in var.environment :
+        {
+          name  = k
+          value = v
+        }
       ]
 
-      secrets = local.secrets_list
+      secrets = [
+        for key, arn in var.ssm_parameters :
+        {
+          name      = key
+          valueFrom = arn
+        }
+      ]
 
       healthCheck = {
         command     = ["CMD-SHELL", "curl -f http://localhost:${var.container_port}/actuator/health || exit 1"]
         interval    = 30
         timeout     = 5
         retries     = 3
-        startPeriod = 20
+        startPeriod = 30
       }
 
       logConfiguration = {
@@ -55,78 +49,46 @@ locals {
         }
       }
     }
-  ]
-
-  container_blue_json = jsonencode(local.container_blue)
-
-  # GREEN TASK DEF
-  container_green = [
-    {
-      name      = var.container_name
-      image     = "${var.ecr_image}:${var.image_tag_green}"
-      essential = true
-
-      portMappings = [{
-        containerPort = var.container_port
-        hostPort      = var.container_port
-      }]
-
-      environment = [
-        { name = "PROFILE_ACTIVE", value = local.profile },
-        { name = "CONFIG_SERVER_URL", value = local.config_server_url },
-        { name = "EUREKA_HOST", value = local.eureka_host },
-        { name = "EUREKA_PORT", value = local.eureka_port }
-      ]
-
-      secrets = local.secrets_list
-
-      healthCheck = {
-        command     = ["CMD-SHELL", "curl -f http://localhost:${var.container_port}/actuator/health || exit 1"]
-        interval    = 30
-        timeout     = 5
-        retries     = 3
-        startPeriod = 20
-      }
-
-      logConfiguration = {
-        logDriver = "awslogs"
-        options = {
-          awslogs-group         = aws_cloudwatch_log_group.ecs.name
-          awslogs-region        = var.region
-          awslogs-stream-prefix = "ecs"
-        }
-      }
-    }
-  ]
-
-  container_green_json = jsonencode(local.container_green)
+  ])
 }
 
 resource "aws_ecs_task_definition" "blue" {
-  family                   = "${var.prefix}-task-blue"
+  family                   = "${var.service_name}-blue"
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
-  cpu                      = "512"
-  memory                   = "1024"
-  execution_role_arn       = var.execution_role_arn
+  cpu                      = var.cpu
+  memory                   = var.memory
+
   task_role_arn            = var.task_role_arn
-  container_definitions    = local.container_blue_json
+  execution_role_arn       = var.execution_role_arn
+
+  container_definitions    = replace(
+    local.container_def_base,
+    "__IMAGE__",
+    "${var.ecr_image}:${var.image_tag_blue}"
+  )
 }
 
 resource "aws_ecs_task_definition" "green" {
-  family                   = "${var.prefix}-task-green"
+  family                   = "${var.service_name}-green"
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
-  cpu                      = "512"
-  memory                   = "1024"
-  execution_role_arn       = var.execution_role_arn
+  cpu                      = var.cpu
+  memory                   = var.memory
+
   task_role_arn            = var.task_role_arn
-  container_definitions    = local.container_green_json
+  execution_role_arn       = var.execution_role_arn
+
+  container_definitions    = replace(
+    local.container_def_base,
+    "__IMAGE__",
+    "${var.ecr_image}:${var.image_tag_green}"
+  )
 }
 
 # Blue Service
 resource "aws_ecs_service" "blue" {
-  name            = "${var.prefix}-blue"
+  name            = "${var.service_name}-blue"
   cluster         = var.cluster_name
   task_definition = aws_ecs_task_definition.blue.arn
   launch_type     = "FARGATE"
@@ -137,7 +99,7 @@ resource "aws_ecs_service" "blue" {
 
   network_configuration {
     subnets          = var.subnets
-    security_groups  = [var.backend_sg_id]
+    security_groups  = [var.security_group_id]
     assign_public_ip = false
   }
 
@@ -170,7 +132,7 @@ resource "aws_ecs_service" "blue" {
 
 # Green Service
 resource "aws_ecs_service" "green" {
-  name            = "${var.prefix}-green"
+  name            = "${var.service_name}-green"
   cluster         = var.cluster_name
   task_definition = aws_ecs_task_definition.green.arn
   launch_type     = "FARGATE"
@@ -181,7 +143,7 @@ resource "aws_ecs_service" "green" {
 
   network_configuration {
     subnets          = var.subnets
-    security_groups  = [var.backend_sg_id]
+    security_groups  = [var.security_group_id]
     assign_public_ip = false
   }
 

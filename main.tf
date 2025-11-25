@@ -143,6 +143,7 @@ module "cloudmap" {
   services = {
     config = {}
     eureka = {}
+    gateway = {}
     member = {}
     product = {}
     order = {}
@@ -154,33 +155,38 @@ module "cloudmap" {
 module "ecs_gateway" {
   source = "./modules/ecs"
 
-  prefix        = "${var.prefix}-gateway"
+  service_name  = "${var.prefix}-gateway"
   cluster_name  = aws_ecs_cluster.come2us.name
+  region        = var.region
+
   subnets       = module.network.private_subnet_ids
-  backend_sg_id = module.sg.backend_sg_id
-
-  alb_target_group_blue  = module.alb_service.gateway_tg_blue_arn
-  alb_target_group_green = module.alb_service.gateway_tg_green_arn
-
-  image_tag_blue  = var.gateway_image_tag_blue
-  image_tag_green = var.gateway_image_tag_green
+  security_group_id = module.sg.backend_sg_id
+  execution_role_arn = module.ecs_iam.task_execution_role_arn
+  task_role_arn      = module.ecs_iam.task_role_arn
 
   ecr_image      = "${var.ecr_uri}-gateway"
+  image_tag_blue  = var.gateway_image_tag_blue
+  image_tag_green = var.gateway_image_tag_green
   container_name = "${var.prefix}-gateway"
   container_port = var.gateway_port
-  region         = var.region
-
-  profile_active     = var.spring_profile_active
-  config_server_host = "${module.cloudmap.service_names["config"]}.${module.cloudmap.namespace_name}"
-  config_server_port = var.config_port
-  eureka_host        = "${module.cloudmap.service_names["eureka"]}.${module.cloudmap.namespace_name}"
-  eureka_port        = var.eureka_port
 
   active_color = var.gateway_active_color
   warmup_color = var.gateway_warmup_color
 
-  execution_role_arn = module.ecs_iam.task_execution_role_arn
-  task_role_arn      = module.ecs_iam.task_role_arn
+  service_discovery_arn = module.cloudmap.service_arns["gateway"]
+
+  alb_target_group_blue  = module.alb_service.gateway_tg_blue_arn
+  alb_target_group_green = module.alb_service.gateway_tg_green_arn
+
+  environment = {
+    PROFILE_ACTIVE    = var.spring_profile_active
+    CONFIG_SERVER_URL = "http://${module.cloudmap.service_names["config"]}.${module.cloudmap.namespace_name}:${var.config_port}"
+    EUREKA_HOST       = "${module.cloudmap.service_names["eureka"]}.${module.cloudmap.namespace_name}"
+    EUREKA_PORT       = var.eureka_port
+
+    GATEWAY_HOSTNAME  = "${module.cloudmap.service_names["gateway"]}.${module.cloudmap.namespace_name}"
+    GATEWAY_PORT      = var.order_port
+  }
 
   ssm_parameters = {
     JWT_ACCESS_TOKEN_SECRET = module.ssm.parameter_arns["/${var.prefix}/jwt/JWT_ACCESS_TOKEN_SECRET"]
