@@ -1,9 +1,16 @@
+#####################################
+# CloudWatch Logs
+#####################################
 resource "aws_cloudwatch_log_group" "ecs" {
   name              = "/ecs/${var.service_name}"
   retention_in_days = 7
 }
 
+#####################################
+# Common Container Definition (Base)
+#####################################
 locals {
+  # base template - image는 placeholder "__IMAGE__"
   container_def_base = jsonencode([
     {
       name      = var.service_name
@@ -34,10 +41,10 @@ locals {
 
       healthCheck = {
         command     = ["CMD-SHELL", "curl -f http://localhost:${var.container_port}/actuator/health || exit 1"]
-        interval    = 30
+        interval    = 10
         timeout     = 5
         retries     = 3
-        startPeriod = 30
+        startPeriod = 90
       }
 
       logConfiguration = {
@@ -52,6 +59,9 @@ locals {
   ])
 }
 
+#####################################
+# BLUE Task Definition
+#####################################
 resource "aws_ecs_task_definition" "blue" {
   family                   = "${var.service_name}-blue"
   requires_compatibilities = ["FARGATE"]
@@ -59,16 +69,19 @@ resource "aws_ecs_task_definition" "blue" {
   cpu                      = var.cpu
   memory                   = var.memory
 
-  task_role_arn            = var.task_role_arn
-  execution_role_arn       = var.execution_role_arn
+  task_role_arn      = var.task_role_arn
+  execution_role_arn = var.execution_role_arn
 
-  container_definitions    = replace(
+  container_definitions = replace(
     local.container_def_base,
     "__IMAGE__",
     "${var.ecr_image}:${var.image_tag_blue}"
   )
 }
 
+#####################################
+# GREEN Task Definition
+#####################################
 resource "aws_ecs_task_definition" "green" {
   family                   = "${var.service_name}-green"
   requires_compatibilities = ["FARGATE"]
@@ -76,17 +89,19 @@ resource "aws_ecs_task_definition" "green" {
   cpu                      = var.cpu
   memory                   = var.memory
 
-  task_role_arn            = var.task_role_arn
-  execution_role_arn       = var.execution_role_arn
+  task_role_arn      = var.task_role_arn
+  execution_role_arn = var.execution_role_arn
 
-  container_definitions    = replace(
+  container_definitions = replace(
     local.container_def_base,
     "__IMAGE__",
     "${var.ecr_image}:${var.image_tag_green}"
   )
 }
 
-# Blue Service
+#####################################
+# BLUE Service
+#####################################
 resource "aws_ecs_service" "blue" {
   name            = "${var.service_name}-blue"
   cluster         = var.cluster_name
@@ -95,7 +110,7 @@ resource "aws_ecs_service" "blue" {
 
   desired_count = (
     var.active_color == "blue" || var.warmup_color == "blue"
-  ) ? 2 : 0
+  ) ? var.desired_count : 0
 
   network_configuration {
     subnets          = var.subnets
@@ -110,27 +125,15 @@ resource "aws_ecs_service" "blue" {
     }
   }
 
-  dynamic "load_balancer" {
-    for_each = var.alb_target_group_blue != null ? [1] : []
-    content {
-      target_group_arn = var.alb_target_group_blue
-      container_name   = var.container_name
-      container_port   = var.container_port
-    }
-  }
-
-  deployment_controller {
-    type = "ECS"
-  }
-
   deployment_minimum_healthy_percent = 100
   deployment_maximum_percent         = 200
-  health_check_grace_period_seconds  = 60
 
   depends_on = [aws_ecs_task_definition.blue]
 }
 
-# Green Service
+#####################################
+# GREEN Service
+#####################################
 resource "aws_ecs_service" "green" {
   name            = "${var.service_name}-green"
   cluster         = var.cluster_name
@@ -139,7 +142,7 @@ resource "aws_ecs_service" "green" {
 
   desired_count = (
     var.active_color == "green" || var.warmup_color == "green"
-  ) ? 2 : 0
+  ) ? var.desired_count : 0
 
   network_configuration {
     subnets          = var.subnets
@@ -154,22 +157,8 @@ resource "aws_ecs_service" "green" {
     }
   }
 
-  dynamic "load_balancer" {
-    for_each = var.alb_target_group_green != null ? [1] : []
-    content {
-      target_group_arn = var.alb_target_group_green
-      container_name   = var.container_name
-      container_port   = var.container_port
-    }
-  }
-
-  deployment_controller {
-    type = "ECS"
-  }
-
   deployment_minimum_healthy_percent = 100
   deployment_maximum_percent         = 200
-  health_check_grace_period_seconds  = 60
 
   depends_on = [aws_ecs_task_definition.green]
 }

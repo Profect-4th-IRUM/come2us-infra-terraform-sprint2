@@ -1,6 +1,3 @@
-variable "alb_target_group_blue" { default = null }
-variable "alb_target_group_green" { default = null }
-
 variable "service_name" {}
 variable "cluster_name" {}
 variable "region" {}
@@ -17,7 +14,6 @@ variable "task_role_arn" {}
 variable "ecr_image" {}
 variable "image_tag_blue" {}
 variable "image_tag_green" {}
-variable "container_name" {}
 variable "container_port" {}
 
 variable "environment" {

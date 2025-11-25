@@ -47,7 +47,7 @@ resource "aws_elasticache_replication_group" "come2us_session_redis" {
   engine_version             = var.engine_version
   node_type                  = var.node_type
   replicas_per_node_group    = 1
-  port                       = 6380
+  port                       = 6379
   multi_az_enabled           = true
   automatic_failover_enabled = true
   at_rest_encryption_enabled = true
